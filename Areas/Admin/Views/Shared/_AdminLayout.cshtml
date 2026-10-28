@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DuckUpskill Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DuckUpskill.styles.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="admin-sidebar">
+            <a class="admin-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                <span class="brand-icon">🦆</span>
+                <span><strong>DuckUpskill</strong><small>ADMIN PANEL</small></span>
+            </a>
+            <div class="admin-nav-label">เมนูหลัก</div>
+            <nav class="admin-nav">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"><span>◫</span> ภาพรวม Dashboard</a>
+                <a asp-area="Admin" asp-controller="Courses" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Courses" ? "active" : "")"><span>▣</span> จัดการคอร์ส</a>
+                <a asp-area="Admin" asp-controller="Members" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Members" ? "active" : "")"><span>♙</span> จัดการสมาชิก</a>
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")"><span>▤</span> คำสั่งซื้อ</a>
+            </nav>
+            <div class="admin-sidebar-bottom">
+                <a asp-area="" asp-controller="Home" asp-action="Index"><span>↗</span> ไปหน้าเว็บไซต์</a>
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit"><span>⇥</span> ออกจากระบบ</button>
+                </form>
+            </div>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div class="admin-mobile-brand"><span>🦆</span> DuckUpskill Admin</div>
+                <div class="admin-topbar-right">
+                    <span class="admin-status-dot"></span>
+                    <span>Administrator</span>
+                    <div class="admin-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")</div>
+                </div>
+            </header>
+            <section class="admin-content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @RenderBody()
+            </section>
+        </main>
+    </div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

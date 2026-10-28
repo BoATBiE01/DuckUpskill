@@ -1,0 +1,17 @@
+@model DuckUpskill.Models.Course
+@{
+    ViewData["Title"] = "เพิ่มคอร์สใหม่";
+    ViewData["IsEdit"] = false;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปจัดการคอร์ส</a>
+    <h2 class="fw-bold mt-2">➕ เพิ่มคอร์สเรียนใหม่</h2>
+    <p class="text-muted">กรอกรายละเอียดพื้นฐาน จากนั้นเพิ่มเนื้อหาบทเรียนในขั้นตอนถัดไป</p>
+</div>
+
+<partial name="_CourseForm" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

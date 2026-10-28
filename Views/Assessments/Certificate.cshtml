@@ -1,0 +1,52 @@
+@model DuckUpskill.Models.CourseCertificate
+@{
+    ViewData["Title"] = "Certificate - " + Model.Course?.Title;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <a asp-controller="Learning" asp-action="MyCourses" class="btn btn-outline-secondary">← กลับไปการเรียนของฉัน</a>
+        <button type="button" class="btn btn-duck-primary fw-bold" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+    </div>
+
+    <article class="certificate-sheet">
+        <div class="certificate-inner">
+            <div class="certificate-brand">🦆 DUCKUPSKILL</div>
+            <div class="certificate-kicker">CERTIFICATE OF COMPLETION</div>
+            <h1>ประกาศนียบัตร</h1>
+            <p class="certificate-intro">ขอมอบประกาศนียบัตรฉบับนี้ให้แก่</p>
+            <div class="certificate-student">@Model.User?.FullName</div>
+            <p class="certificate-intro">เพื่อรับรองว่าได้เรียนจบหลักสูตร</p>
+            <div class="certificate-course">@Model.Course?.Title</div>
+            <p class="certificate-intro">และผ่านการประเมินหลังเรียนตามเกณฑ์ที่กำหนด</p>
+            <div class="certificate-meta">
+                <div><span>วันที่ออกใบประกาศ</span><strong>@Model.IssuedAt.ToLocalTime().ToString("dd MMMM yyyy")</strong></div>
+                <div><span>หมายเลขใบประกาศ</span><strong>@Model.CertificateNumber</strong></div>
+            </div>
+            <div class="certificate-signature">
+                <div class="signature-line">DuckUpskill</div>
+                <span>ผู้จัดทำหลักสูตร</span>
+            </div>
+            <div class="certificate-seal">✓</div>
+        </div>
+    </article>
+</div>
+
+<style>
+.certificate-sheet { max-width: 1100px; min-height: 700px; margin: 0 auto; padding: 16px; background: linear-gradient(135deg, #ffc000, #ff6a00); box-shadow: 0 12px 35px rgba(0,0,0,.12); }
+.certificate-inner { min-height: 668px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; text-align: center; background: #fffdf7; border: 3px solid #fff; outline: 1px solid #e5a800; outline-offset: -12px; }
+.certificate-brand { color: #e85f00; font-weight: 700; letter-spacing: .15em; }
+.certificate-kicker { margin-top: 22px; color: #a87900; letter-spacing: .25em; font-size: .85rem; }
+.certificate-inner h1 { margin: 8px 0 20px; font-size: 3rem; color: #23272a; }
+.certificate-intro { color: #6c757d; margin: 8px 0; }
+.certificate-student { min-width: 60%; padding: 8px 20px; border-bottom: 2px solid #e5a800; color: #d95300; font: 600 2.2rem 'Kanit', sans-serif; }
+.certificate-course { max-width: 85%; font: 600 1.5rem 'Kanit', sans-serif; }
+.certificate-meta { display: flex; gap: 70px; margin-top: 34px; }
+.certificate-meta div { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; }
+.certificate-meta span, .certificate-signature span { color: #6c757d; }
+.certificate-signature { margin-top: 38px; display: flex; flex-direction: column; align-items: center; }
+.signature-line { min-width: 200px; border-bottom: 1px solid #555; padding: 0 20px 5px; font: italic 1.4rem 'Kanit', sans-serif; }
+.certificate-seal { position: absolute; right: 45px; bottom: 40px; width: 64px; height: 64px; display: grid; place-items: center; border: 3px double #e5a800; border-radius: 50%; color: #e5a800; font-size: 2rem; }
+@@media (max-width: 600px) { .certificate-sheet { min-height: auto; padding: 8px; } .certificate-inner { min-height: 600px; padding: 30px 18px; } .certificate-inner h1 { font-size: 2.2rem; } .certificate-student { font-size: 1.6rem; } .certificate-meta { gap: 20px; flex-wrap: wrap; justify-content: center; } .certificate-seal { right: 20px; bottom: 20px; width: 48px; height: 48px; } }
+@@media print { @@page { size: landscape; margin: 10mm; } body { background: white !important; } .no-print, .site-header, .site-footer { display: none !important; } .container { max-width: none !important; padding: 0 !important; } .certificate-sheet { max-width: none; min-height: 180mm; box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; } .certificate-inner { min-height: 168mm; } }
+</style>

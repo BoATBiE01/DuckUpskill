@@ -1,0 +1,79 @@
+@model IEnumerable<DuckUpskill.Models.ApplicationUser>
+@inject Microsoft.AspNetCore.Identity.UserManager<DuckUpskill.Models.ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "จัดการสมาชิก";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1">👥 จัดการสมาชิก (Members & Users)</h2>
+        <p class="text-muted mb-0">ดูรายชื่อสมาชิก สิทธิ์การใช้งาน (Admin / Member) และประวัติการเรียน</p>
+    </div>
+    <a asp-action="Create" class="btn btn-duck-primary fw-semibold">
+        ➕ เพิ่มผู้ใช้ใหม่
+    </a>
+</div>
+
+<div class="admin-card mb-4 p-3">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-9">
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="ค้นหาชื่อ หรือ อีเมลสมาชิก..." />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-dark w-100">ค้นหา</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">ล้าง</a>
+        </div>
+    </form>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>ผู้ใช้งาน</th>
+                    <th>อีเมล</th>
+                    <th>สิทธิ์การใช้งาน (Role)</th>
+                    <th>วันที่สมัคร</th>
+                    <th class="text-end" style="width: 170px;">การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var roles = await UserManager.GetRolesAsync(user);
+                    var isAdmin = roles.Contains("Admin");
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    @(user.FullName?.FirstOrDefault() ?? 'U')
+                                </div>
+                                <div class="fw-bold">@user.FullName</div>
+                            </div>
+                        </td>
+                        <td>@user.Email</td>
+                        <td>
+                            @if (isAdmin)
+                            {
+                                <span class="badge bg-danger">👑 Admin</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">🎓 Member</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@user.RegisteredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-outline-secondary">ดู</a>
+                                <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-outline-warning text-dark">แก้ไข/สิทธิ์</a>
+                                <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-outline-danger">ลบ</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

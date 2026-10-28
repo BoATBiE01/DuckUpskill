@@ -1,0 +1,57 @@
+@model DuckUpskill.Models.Lesson
+@{
+    var course = ViewBag.Course as DuckUpskill.Models.Course;
+    ViewData["Title"] = "แก้ไขบทเรียน";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="text-decoration-none text-muted small">← กลับไปรายการบทเรียน</a>
+    <h2 class="fw-bold mt-2">✏️ แก้ไขบทเรียน</h2>
+    <p class="text-muted">คอร์ส: @(course?.Title)</p>
+</div>
+
+<form asp-action="Edit" method="post" class="admin-card p-4">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="CourseId" />
+
+    <div class="row g-3">
+        <div class="col-md-9">
+            <label asp-for="Title" class="form-label fw-semibold"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="OrderNumber" class="form-label fw-semibold">ลำดับที่</label>
+            <input asp-for="OrderNumber" class="form-control" type="number" min="1" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="DurationMinutes" class="form-label fw-semibold">ความยาว (นาที)</label>
+            <input asp-for="DurationMinutes" class="form-control" type="number" min="1" />
+        </div>
+        <div class="col-md-8">
+            <label asp-for="VideoUrl" class="form-label fw-semibold"></label>
+            <input asp-for="VideoUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." />
+        </div>
+        <div class="col-12">
+            <label asp-for="Content" class="form-label fw-semibold"></label>
+            <textarea asp-for="Content" rows="6" class="form-control"></textarea>
+        </div>
+        <div class="col-12">
+            <div class="form-check form-switch">
+                <input asp-for="IsPreview" class="form-check-input" />
+                <label asp-for="IsPreview" class="form-check-label fw-semibold"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-outline-secondary">ยกเลิก</a>
+        <button type="submit" class="btn btn-duck-primary px-4 fw-bold">💾 บันทึกการแก้ไข</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

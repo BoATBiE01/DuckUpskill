@@ -1,0 +1,81 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DuckUpskill.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<div class="d-flex align-items-center gap-2 flex-wrap">
+@if (SignInManager.IsSignedIn(User))
+{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var isAdmin = User.IsInRole("Admin");
+
+    if (isAdmin)
+    {
+        <a class="btn btn-sm btn-outline-warning text-dark fw-bold" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+            ⚙️ แผงผู้ดูแล (Admin Dashboard)
+        </a>
+    }
+    else
+    {
+        <a class="btn btn-sm btn-outline-warning text-dark" asp-area="" asp-controller="Learning" asp-action="MyCourses">
+            🎓 คอร์สของฉัน
+        </a>
+    }
+
+    <div class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            @if (!string.IsNullOrWhiteSpace(currentUser?.ProfilePictureUrl))
+            {
+                <img src="@currentUser.ProfilePictureUrl" alt="รูปโปรไฟล์" class="user-avatar-badge user-avatar-image" />
+            }
+            else
+            {
+                <span class="user-avatar-badge">@(currentUser?.FullName?.FirstOrDefault() ?? 'U')</span>
+            }
+            <span class="d-none d-md-inline small fw-semibold">@(currentUser?.FullName ?? User.Identity?.Name)</span>
+            @if (isAdmin)
+            {
+                <span class="badge bg-danger ms-1">Admin</span>
+            }
+            else
+            {
+                <span class="badge bg-warning text-dark ms-1">Member</span>
+            }
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            @if (!isAdmin)
+            {
+                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">👤 โปรไฟล์ของฉัน</a></li>
+                <li><a class="dropdown-item" asp-area="" asp-controller="Learning" asp-action="MyCourses">📖 การเรียนของฉัน</a></li>
+                <li><a class="dropdown-item" asp-area="" asp-controller="Orders" asp-action="History">🧾 ประวัติการซื้อ</a></li>
+                <li><hr class="dropdown-divider"></li>
+            }
+            else
+            {
+                <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">📊 Admin Dashboard</a></li>
+                <li><a class="dropdown-item" asp-area="Admin" asp-controller="Courses" asp-action="Index">📚 จัดการคอร์สเรียน</a></li>
+                <li><a class="dropdown-item" asp-area="Admin" asp-controller="Members" asp-action="Index">👥 จัดการสมาชิก</a></li>
+                <li><a class="dropdown-item" asp-area="Admin" asp-controller="Orders" asp-action="Index">💰 รายการสั่งซื้อ</a></li>
+                <li><hr class="dropdown-divider"></li>
+            }
+            <li>
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="px-2">
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100 text-start">🚪 ออกจากระบบ</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <a class="btn btn-sm btn-outline-secondary" asp-area="" asp-controller="Account" asp-action="AdminLogin">
+        🔐 Admin
+    </a>
+    <a class="btn btn-sm btn-outline-warning text-dark fw-semibold" asp-area="" asp-controller="Account" asp-action="Login">
+        เข้าสู่ระบบ
+    </a>
+    <a class="btn btn-sm btn-duck-primary fw-bold" asp-area="" asp-controller="Account" asp-action="Register">
+        สมัครสมาชิก
+    </a>
+}
+</div>

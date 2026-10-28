@@ -1,0 +1,17 @@
+@model DuckUpskill.Models.Course
+@{
+    ViewData["Title"] = "แก้ไขคอร์ส: " + Model.Title;
+    ViewData["IsEdit"] = true;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปจัดการคอร์ส</a>
+    <h2 class="fw-bold mt-2">✏️ แก้ไขคอร์สเรียน</h2>
+    <p class="text-muted">กำลังแก้ไขข้อมูลคอร์ส "@Model.Title"</p>
+</div>
+
+<partial name="_CourseForm" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

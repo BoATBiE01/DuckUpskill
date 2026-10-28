@@ -1,0 +1,83 @@
+@model DuckUpskill.Models.Course
+@{
+    ViewData["Title"] = "จัดการบทเรียน - " + Model.Title;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a asp-controller="Courses" asp-action="Index" class="text-decoration-none text-muted small">← กลับไปหน้ารายการคอร์ส</a>
+        <h2 class="fw-bold mt-1 mb-0">📝 จัดการบทเรียน: @Model.Title</h2>
+        <p class="text-muted mb-0">ทั้งหมด @Model.Lessons.Count บทเรียน</p>
+    </div>
+    <a asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-duck-primary fw-semibold">
+        ➕ เพิ่มบทเรียนใหม่
+    </a>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">ลำดับ</th>
+                    <th>ชื่อบทเรียน</th>
+                    <th>ความยาว</th>
+                    <th>วิดีโอ (URL)</th>
+                    <th>สิทธิ์</th>
+                    <th class="text-end" style="width: 160px;">การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Lessons.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            ยังไม่มีบทเรียนในคอร์สนี้ กดปุ่ม "เพิ่มบทเรียนใหม่" เพื่อเริ่มสร้าง
+                        </td>
+                    </tr>
+                }
+                @foreach (var lesson in Model.Lessons)
+                {
+                    <tr>
+                        <td class="fw-bold text-center">@lesson.OrderNumber</td>
+                        <td>
+                            <div class="fw-bold">@lesson.Title</div>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 320px;">@lesson.Content</small>
+                        </td>
+                        <td>@lesson.DurationMinutes นาที</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(lesson.VideoUrl))
+                            {
+                                <span class="badge bg-light text-dark border">มีวิดีโอ</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (lesson.IsPreview)
+                            {
+                                <span class="badge bg-info text-dark">ทดลองฟรี</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">ต้องลงทะเบียน</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-action="Edit" asp-route-id="@lesson.Id" class="btn btn-outline-warning text-dark">
+                                    แก้ไข
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@lesson.Id" class="btn btn-outline-danger">
+                                    ลบ
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

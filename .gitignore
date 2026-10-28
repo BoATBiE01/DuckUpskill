@@ -1,0 +1,21 @@
+## Build output
+bin/
+obj/
+verify-build/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+
+## Local development
+appsettings.Development.json
+*.usersecrets.json
+
+## Runtime uploads and local logs
+wwwroot/uploads/
+logs/
+
+## OS files
+.DS_Store
+Thumbs.db

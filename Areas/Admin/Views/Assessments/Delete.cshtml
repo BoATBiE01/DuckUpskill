@@ -1,0 +1,20 @@
+@model DuckUpskill.Models.AssessmentQuestion
+@{
+    ViewData["Title"] = "ลบข้อสอบ";
+}
+
+<div class="container py-5" style="max-width: 700px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <h1 class="h4 fw-bold text-danger">ลบโจทย์ข้อสอบ</h1>
+        <p>ต้องการลบโจทย์นี้หรือไม่? การลบจะลบตัวเลือกที่เกี่ยวข้องด้วย</p>
+        <div class="alert alert-warning">@Model.Text<br /><small>@Model.Course?.Title · @Model.Type</small></div>
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-type="@Model.Type" class="btn btn-outline-secondary">ยกเลิก</a>
+                <button type="submit" class="btn btn-danger">ยืนยันลบ</button>
+            </div>
+        </form>
+    </div>
+</div>

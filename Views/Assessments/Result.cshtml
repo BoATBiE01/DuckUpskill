@@ -1,0 +1,51 @@
+@model DuckUpskill.ViewModels.AssessmentResultViewModel
+@{
+    var attempt = Model.Attempt;
+    var isPreTest = attempt.Type == AssessmentType.PreTest;
+    ViewData["Title"] = "ผลสอบ - " + Model.Course.Title;
+}
+
+<div class="container py-5" style="max-width: 850px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
+        <div class="text-center">
+            <div style="font-size: 4rem;">@(isPreTest ? "📝" : attempt.Passed ? "🎉" : "📚")</div>
+            <span class="badge @(isPreTest ? "bg-primary" : "bg-success")">@(isPreTest ? "PRE-TEST" : "POST-TEST")</span>
+            <h1 class="h3 fw-bold mt-2">@Model.Course.Title</h1>
+            <div class="display-4 fw-bold @(attempt.Passed ? "text-success" : "text-warning-emphasis")">@attempt.Score%</div>
+            <p class="text-muted">ตอบถูก @attempt.Answers.Count(a => a.IsCorrect) จาก @attempt.TotalQuestions ข้อ</p>
+            @if (!isPreTest)
+            {
+                <div class="alert @(attempt.Passed ? "alert-success" : "alert-warning")">
+                    @(attempt.Passed ? "ผ่านเกณฑ์แล้ว! เกณฑ์ของคอร์สนี้คือ " + Model.Course.CertificatePassingScore + "%" : "ยังไม่ผ่านเกณฑ์ " + Model.Course.CertificatePassingScore + "% สามารถกลับไปทบทวนแล้วทำ Post-test ใหม่ได้")
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">ผล Pre-test ใช้ประเมินความรู้ก่อนเรียน และไม่กระทบสิทธิ์รับ Certificate</p>
+            }
+        </div>
+
+        <hr />
+        <h2 class="h5 fw-bold">เฉลย</h2>
+        @foreach (var answer in attempt.Answers.OrderBy(a => a.Question?.OrderNumber))
+        {
+            <div class="border rounded-3 p-3 mb-2">
+                <div class="fw-semibold">@answer.Question?.Text</div>
+                <div class="small mt-1">คำตอบของคุณ: @(answer.SelectedOption?.Text ?? "ไม่ได้เลือก")</div>
+                <div class="small @(answer.IsCorrect ? "text-success" : "text-danger")">@(answer.IsCorrect ? "✓ ถูกต้อง" : "✗ ไม่ถูกต้อง")</div>
+            </div>
+        }
+
+        <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+            @if (Model.Certificate != null)
+            {
+                <a asp-action="Certificate" asp-route-courseId="@Model.Course.Id" class="btn btn-duck-primary fw-bold">🏅 ดู Certificate</a>
+            }
+            @if (!isPreTest && !attempt.Passed)
+            {
+                <a asp-action="Take" asp-route-courseId="@Model.Course.Id" asp-route-type="PostTest" class="btn btn-outline-success">ทำ Post-test อีกครั้ง</a>
+            }
+            <a asp-controller="Learning" asp-action="MyCourses" class="btn btn-outline-secondary">กลับไปคอร์สของฉัน</a>
+        </div>
+    </div>
+</div>

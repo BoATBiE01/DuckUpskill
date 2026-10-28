@@ -1,0 +1,26 @@
+@model DuckUpskill.Models.ApplicationUser
+@{
+    ViewData["Title"] = "ยืนยันการลบสมาชิก";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปจัดการสมาชิก</a>
+    <h2 class="fw-bold text-danger mt-2">🗑️ ยืนยันการลบสมาชิก</h2>
+</div>
+
+<div class="admin-card p-4">
+    <p>คุณต้องการลบผู้ใช้งานรายนี้จริงหรือไม่?</p>
+    <div class="alert alert-warning">
+        <strong>@Model.FullName</strong> (@Model.Email)<br />
+        <small class="text-muted">วันที่สมัคร: @Model.RegisteredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a>
+            <button type="submit" class="btn btn-danger fw-bold px-4">ยืนยันการลบผู้ใช้</button>
+        </div>
+    </form>
+</div>

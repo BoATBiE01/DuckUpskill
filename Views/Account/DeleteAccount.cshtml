@@ -1,0 +1,52 @@
+@model DuckUpskill.ViewModels.DeleteAccountViewModel
+@{
+    ViewData["Title"] = "ลบบัญชีสมาชิก";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <a asp-action="Profile" class="text-decoration-none text-muted">← กลับไปโปรไฟล์</a>
+            <div class="card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="text-danger" style="font-size: 3.5rem;">⚠️</div>
+                        <h1 class="h3 fw-bold text-danger">ลบบัญชีสมาชิก</h1>
+                        <p class="text-muted mb-0">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+                    </div>
+
+                    <div class="alert alert-danger small">
+                        บัญชี การลงทะเบียนเรียน ประวัติความคืบหน้า และข้อมูลที่เกี่ยวข้องจะถูกลบอย่างถาวร กรุณาตรวจสอบให้แน่ใจก่อนยืนยัน
+                    </div>
+
+                    <form asp-action="DeleteAccount" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="CurrentPassword" class="form-label fw-semibold"></label>
+                            <input asp-for="CurrentPassword" class="form-control" autocomplete="current-password" />
+                            <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Confirmation" class="form-label fw-semibold"></label>
+                            <input asp-for="Confirmation" class="form-control" placeholder="DELETE" autocomplete="off" />
+                            <span asp-validation-for="Confirmation" class="text-danger small"></span>
+                            <div class="form-text">พิมพ์คำว่า <strong>DELETE</strong> เป็นตัวพิมพ์ใหญ่เพื่อยืนยัน</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-2">
+                            <a asp-action="Profile" class="btn btn-outline-secondary">ยกเลิก</a>
+                            <button type="submit" class="btn btn-danger fw-bold">ยืนยันลบบัญชี</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

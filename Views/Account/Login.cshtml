@@ -1,0 +1,77 @@
+@model DuckUpskill.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "เข้าสู่ระบบสมาชิก";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div style="font-size: 3.5rem;">🦆</div>
+                    <h3 class="fw-bold mb-1">เข้าสู่ระบบสมาชิก (Member)</h3>
+                    <p class="text-muted small">เข้าสู่ระบบเพื่อเรียนคอร์สของคุณและติดตามความคืบหน้า</p>
+                </div>
+
+                <!-- Fast Switch to Admin Login -->
+                <div class="alert alert-light border d-flex align-items-center justify-content-between p-2 mb-4">
+                    <span class="small text-muted">คุณเป็นผู้ดูแลระบบ?</span>
+                    <a asp-action="AdminLogin" class="btn btn-sm btn-outline-danger fw-bold">
+                        🔐 เข้าสู่ระบบ Admin
+                    </a>
+                </div>
+
+                <form asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold"></label>
+                        <input asp-for="Email" id="memberEmail" class="form-control form-control-lg fs-6" placeholder="name@example.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                        <input asp-for="Password" id="memberPass" class="form-control form-control-lg fs-6" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label small"></label>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-lg btn-duck-primary fw-bold">
+                            เข้าสู่ระบบสมาชิก
+                        </button>
+                    </div>
+
+                    <!-- Quick Demo Fill Button -->
+                    <div class="p-3 bg-light rounded-3 text-center border">
+                        <div class="small fw-semibold text-muted mb-2">⚡ บัญชีทดสอบสำหรับนักเรียน (Student Demo):</div>
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold w-100" onclick="fillStudentDemo()">
+                            คลิกเพื่อกรอกบัญชีนักเรียน (student@duckupskill.com)
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4 small">
+                        ยังไม่มีบัญชี? <a asp-action="Register" class="text-warning-emphasis fw-bold text-decoration-none">สมัครสมาชิกฟรี</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function fillStudentDemo() {
+            document.getElementById('memberEmail').value = 'student@duckupskill.com';
+            document.getElementById('memberPass').value = 'Student@Duck123!';
+        }
+    </script>
+}

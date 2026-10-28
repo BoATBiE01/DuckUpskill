@@ -1,0 +1,118 @@
+@model DuckUpskill.ViewModels.MyLearningViewModel
+@{
+    ViewData["Title"] = "การเรียนของฉัน";
+}
+
+<div class="py-4" style="background: linear-gradient(135deg, #FFF8E1, #FFF3E0); border-bottom: 1px solid #FFE0B2;">
+    <div class="container">
+        <div class="d-flex align-items-center gap-3">
+            <div class="admin-avatar" style="width: 60px; height: 60px; font-size: 1.8rem;">@(Model.User.FullName?.FirstOrDefault() ?? 'U')</div>
+            <div>
+                <h2 class="fw-bold mb-0">สวัสดี @Model.User.FullName 👋</h2>
+                <p class="text-muted mb-0">พร้อมอัปสกิลต่อกันเลยไหม? ความรู้ใหม่กำลังรอคุณอยู่!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">🎓 คอร์สที่ฉันกำลังเรียน</h3>
+            <p class="text-muted mb-0">ติดตามความคืบหน้าและกลับไปเรียนต่อได้ทุกเมื่อ</p>
+        </div>
+        <a asp-controller="Courses" asp-action="Index" class="btn btn-duck-outline">+ ค้นหาคอร์สเพิ่มเติม</a>
+    </div>
+
+    @if (!Model.EnrolledCourses.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4 text-center p-5">
+            <div style="font-size: 5rem;">🦆📚</div>
+            <h4 class="fw-bold mt-3">ยังไม่มีคอร์สที่ลงทะเบียน</h4>
+            <p class="text-muted">เลือกคอร์สฟรีเพื่อเริ่มเรียนรู้ได้ทันที หรือค้นหาคอร์สพรีเมียมที่ใช่สำหรับคุณ</p>
+            <div><a asp-controller="Courses" asp-action="Index" class="btn btn-duck-primary fw-bold px-4">🔍 เลือกคอร์สเรียนเลย</a></div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.EnrolledCourses)
+            {
+                var course = item.Enrollment.Course!;
+                <div class="col-md-6 col-lg-4">
+                    <div class="course-card">
+                        <div class="course-thumb-wrap">
+                            <img src="@(string.IsNullOrEmpty(course.ThumbnailUrl) ? "https://placehold.co/600x400" : course.ThumbnailUrl)"
+                                 class="course-thumb" alt="@course.Title" />
+                            <div class="position-absolute bottom-0 start-0 end-0 px-3 py-2" style="background: rgba(0,0,0,0.6);">
+                                <div class="d-flex justify-content-between text-white small mb-1"><span>ความคืบหน้า</span><strong>@item.ProgressPercent%</strong></div>
+                                <div class="progress" style="height: 6px;"><div class="progress-bar bg-warning" style="width: @item.ProgressPercent%"></div></div>
+                            </div>
+                        </div>
+                        <div class="course-card-body">
+                            <div class="course-category">@course.Category</div>
+                            <h4 class="course-title">@course.Title</h4>
+                            <div class="small text-muted mb-3">เรียนจบแล้ว @item.CompletedLessons / @item.TotalLessons บทเรียน</div>
+                            <div class="course-footer">
+                                <span class="small text-muted">ลงทะเบียน @item.Enrollment.EnrolledAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                @if (!item.HasPreTest)
+                                {
+                                    <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@course.Id" asp-route-type="PreTest" class="btn btn-sm btn-outline-primary fw-bold">ทำ Pre-test</a>
+                                }
+                                else if (item.IsCourseCompleted && item.Certificate != null)
+                                {
+                                    <a asp-controller="Assessments" asp-action="Certificate" asp-route-courseId="@course.Id" class="btn btn-sm btn-success fw-bold">🏅 Certificate</a>
+                                }
+                                else if (item.IsCourseCompleted)
+                                {
+                                    <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@course.Id" asp-route-type="PostTest" class="btn btn-sm btn-duck-primary fw-bold">ทำ Post-test →</a>
+                                }
+                                else if (item.NextLesson != null)
+                                {
+                                    <a asp-controller="Courses" asp-action="Learn" asp-route-id="@course.Slug" asp-route-lessonId="@item.NextLesson.Id" class="btn btn-sm btn-duck-primary fw-bold">เรียนต่อ →</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Recent Orders -->
+    <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+        <h3 class="fw-bold mb-0">🧾 ประวัติการสั่งซื้อล่าสุด</h3>
+        <a asp-controller="Orders" asp-action="History" class="btn btn-sm btn-outline-secondary">ดูทั้งหมด</a>
+    </div>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">คำสั่งซื้อ</th>
+                        <th>คอร์สเรียน</th>
+                        <th>ยอดชำระ</th>
+                        <th>สถานะ</th>
+                        <th>วันที่</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Orders.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีประวัติการสั่งซื้อคอร์สพรีเมียม</td></tr>
+                    }
+                    @foreach (var order in Model.Orders)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-semibold">@order.OrderNumber</td>
+                            <td>@order.Course?.Title</td>
+                            <td class="fw-bold">฿@order.Amount.ToString("N0")</td>
+                            <td><span class="badge bg-success">ชำระเงินแล้ว</span></td>
+                            <td class="text-muted small">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

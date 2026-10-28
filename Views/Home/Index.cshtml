@@ -1,0 +1,171 @@
+﻿@model IEnumerable<DuckUpskill.Models.Course>
+@{
+    ViewData["Title"] = "หน้าหลัก - เรียนรู้อัปสกิลแบบเป็ดบินได้";
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="hero-badge mb-3">
+                    <span>✨</span> แพลตฟอร์มอัปสกิลคนรุ่นใหม่ 2026
+                </div>
+                <h1 class="hero-title mb-4">
+                    เรียนรู้แบบเป็ด <span class="highlight">รู้รอบ เก่งจริง</span><br />
+                    พร้อมบินสู่เป้าหมาย 🚀
+                </h1>
+                <p class="lead text-muted mb-4" style="font-size: 1.15rem; line-height: 1.7;">
+                    DuckUpskill รวมคอร์สเรียนคุณภาพทั้งสายเทคโนโลยี โปรแกรมมิ่ง AI ฐานข้อมูล และทักษะการทำงาน
+                    มีทั้ง<strong>คอร์สฟรี</strong>สำหรับเริ่มต้น และ<strong>คอร์สพรีเมียม</strong>เพื่อเจาะลึกแบบมือโปร!
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a asp-controller="Courses" asp-action="Index" class="btn btn-lg btn-duck-primary px-4 py-3 fw-bold">
+                        🔍 สำรวจคอร์สเรียนทั้งหมด
+                    </a>
+                    <a asp-controller="Courses" asp-action="Index" asp-route-priceType="free" class="btn btn-lg btn-duck-secondary px-4 py-3 fw-bold">
+                        🎁 คอร์สเรียนฟรี 100%
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-3 text-muted small">
+                    <div>✓ เรียนได้ทุกที่ ทุกเวลา</div>
+                    <div>✓ อัปเดตเนื้อหา 2026</div>
+                    <div>✓ ไม่มีหมดอายุ</div>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center">
+                <div class="position-relative d-inline-block">
+                    <div style="font-size: 8rem; animation: float 3s ease-in-out infinite;">🦆</div>
+                    <div class="stat-pill position-absolute" style="top: 10px; right: -20px;">
+                        <span class="fs-4 fw-bold text-success">100%</span>
+                        <div class="small text-muted">เรียนจบได้วุฒิบัตร</div>
+                    </div>
+                    <div class="stat-pill position-absolute" style="bottom: 0px; left: -20px;">
+                        <span class="fs-4 fw-bold text-warning">4.9 ★</span>
+                        <div class="small text-muted">ความพึงพอใจเฉลี่ย</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Counter Bar -->
+<section class="py-4 bg-white border-bottom">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <h3 class="fw-bold text-dark mb-0 brand-font">@(ViewBag.TotalCourses ?? 6)+</h3>
+                <p class="text-muted small mb-0">คอร์สเรียนคุณภาพพร้อมเนื้อหาเข้มข้น</p>
+            </div>
+            <div class="col-md-4">
+                <h3 class="fw-bold text-warning-emphasis mb-0 brand-font">@(ViewBag.TotalMembers ?? 10)+</h3>
+                <p class="text-muted small mb-0">ผู้เรียนที่กำลังอัปสกิลกับเรา</p>
+            </div>
+            <div class="col-md-4">
+                <h3 class="fw-bold text-success mb-0 brand-font">@(ViewBag.TotalEnrollments ?? 25)+</h3>
+                <p class="text-muted small mb-0">ชั่วโมงการเรียนรู้ที่สำเร็จแล้ว</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courses Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-2 fw-bold mb-2">⭐ คัดสรรพิเศษ</span>
+                <h2 class="section-title mb-1">คอร์สเรียนแนะนำยอดนิยม</h2>
+                <p class="section-subtitle mb-0">เลือกเรียนได้ทั้งแบบเริ่มต้นฟรี และคอร์สระดับมืออาชีพ</p>
+            </div>
+            <a asp-controller="Courses" asp-action="Index" class="btn btn-outline-warning text-dark fw-bold">
+                ดูคอร์สทั้งหมด →
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var course in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="course-card">
+                        <div class="course-thumb-wrap">
+                            <img src="@(string.IsNullOrEmpty(course.ThumbnailUrl) ? "https://placehold.co/600x400" : course.ThumbnailUrl)"
+                                 class="course-thumb" alt="@course.Title" />
+                            @if (course.IsFree)
+                            {
+                                <span class="badge-price-free">ฟรี (Free)</span>
+                            }
+                            else
+                            {
+                                <span class="badge-price-paid">฿@course.Price.ToString("N0")</span>
+                            }
+                        </div>
+                        <div class="course-card-body">
+                            <div class="course-category">@course.Category</div>
+                            <h4 class="course-title">
+                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Slug" class="text-decoration-none text-dark">
+                                    @course.Title
+                                </a>
+                            </h4>
+                            <p class="course-desc">@course.ShortDescription</p>
+
+                            <div class="d-flex align-items-center gap-2 mb-3 small text-muted">
+                                <span>⏱️ @course.DurationHours ชม.</span>
+                                <span>•</span>
+                                <span>⭐ @course.Rating.ToString("F1") (@course.ReviewCount)</span>
+                                <span>•</span>
+                                <span>🎓 @course.Level</span>
+                            </div>
+
+                            <div class="course-footer">
+                                <div>
+                                    @if (course.IsFree)
+                                    {
+                                        <span class="price-display text-success">ฟรี 0 บาท</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="price-display">฿@course.Price.ToString("N0")</span>
+                                        @if (course.OriginalPrice.HasValue)
+                                        {
+                                            <span class="original-price">฿@course.OriginalPrice.Value.ToString("N0")</span>
+                                        }
+                                    }
+                                </div>
+                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Slug" class="btn btn-sm btn-duck-primary fw-semibold">
+                                    ดูรายละเอียด
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Banner Call to Action -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container text-center py-4">
+        <h2 class="fw-bold mb-3 brand-font">พร้อมจะอัปสกิลตัวเองแล้วหรือยัง? 🦆</h2>
+        <p class="lead text-muted mb-4 mx-auto" style="max-width: 650px;">
+            สมัครสมาชิกฟรีวันนี้ เข้าถึงคอร์สพื้นฐานได้ทันที หรือเลือกคอร์สพรีเมียมเพื่อต่อยอดการทำงานจริง
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-lg btn-duck-primary px-4 fw-bold">
+                สมัครสมาชิกฟรีทันที
+            </a>
+            <a asp-controller="Courses" asp-action="Index" class="btn btn-lg btn-outline-secondary px-4 fw-bold">
+                ค้นหาคอร์สเรียน
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+@@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(4deg); }
+}
+</style>

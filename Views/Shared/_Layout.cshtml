@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DuckUpskill</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DuckUpskill.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg navbar-light duck-nav">
+            <div class="container">
+                <a class="navbar-brand duck-brand" asp-area="" asp-controller="Home" asp-action="Index"><span>🦆</span>Duck<span>Upskill</span></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="เปิดเมนู">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav mx-auto align-items-lg-center">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">หน้าหลัก</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Courses" asp-action="Index">คอร์สเรียน</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Support">ช่วยเหลือ</a></li>
+                        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Learning" asp-action="MyCourses">การเรียนของฉัน</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Profile">โปรไฟล์</a></li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        @if (TempData["Success"] != null)
+        {
+            <div class="container pt-3"><div class="alert alert-success alert-dismissible fade show mb-0" role="alert">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="container pt-3"><div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <div class="container pt-3"><div class="alert alert-info alert-dismissible fade show mb-0" role="alert">@TempData["Info"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="footer-brand">🦆 <strong>DuckUpskill</strong><span>เรียนรู้สนุก อัปสกิลได้ทุกวัน</span></div>
+            <div class="text-muted small">© @DateTime.Now.Year DuckUpskill. Made with care for lifelong learners.</div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

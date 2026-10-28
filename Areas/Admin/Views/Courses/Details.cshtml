@@ -1,0 +1,84 @@
+@model DuckUpskill.Models.Course
+@{
+    ViewData["Title"] = "รายละเอียดคอร์ส: " + Model.Title;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปหน้ารวมคอร์ส</a>
+        <h2 class="fw-bold mt-1 mb-0">📖 @Model.Title</h2>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Lessons" asp-action="Index" asp-route-courseId="@Model.Id" class="btn btn-outline-primary fw-semibold">
+            📝 จัดการบทเรียน (@Model.Lessons.Count)
+        </a>
+        <a asp-controller="Assessments" asp-action="Index" asp-route-courseId="@Model.Id" class="btn btn-outline-success fw-semibold">
+            📝 จัดการ Pre / Post-test
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning fw-semibold">
+            ✏️ แก้ไขคอร์ส
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card p-4 mb-4">
+            <h5 class="fw-bold border-bottom pb-2">คำอธิบายย่อ</h5>
+            <p class="text-muted">@Model.ShortDescription</p>
+
+            <h5 class="fw-bold border-bottom pb-2 mt-4">รายละเอียดเนื้อหา</h5>
+            <div style="white-space: pre-line;">@Model.Description</div>
+        </div>
+
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="fw-bold mb-0">สารบัญบทเรียน (@Model.Lessons.Count บท)</h5>
+                <a asp-controller="Lessons" asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-sm btn-duck-primary">
+                    ➕ เพิ่มบทเรียน
+                </a>
+            </div>
+            <div class="p-3">
+                @if (!Model.Lessons.Any())
+                {
+                    <p class="text-muted text-center py-3">ยังไม่มีบทเรียนในคอร์สนี้</p>
+                }
+                @foreach (var lesson in Model.Lessons)
+                {
+                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                        <div>
+                            <span class="badge bg-light text-dark me-2">บทที่ @lesson.OrderNumber</span>
+                            <strong>@lesson.Title</strong>
+                            <small class="text-muted ms-2">(@lesson.DurationMinutes นาที)</small>
+                            @if (lesson.IsPreview)
+                            {
+                                <span class="badge bg-info text-dark ms-1">ทดลองเรียนฟรี</span>
+                            }
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a asp-controller="Lessons" asp-action="Edit" asp-route-id="@lesson.Id" class="btn btn-outline-secondary">แก้ไข</a>
+                            <a asp-controller="Lessons" asp-action="Delete" asp-route-id="@lesson.Id" class="btn btn-outline-danger">ลบ</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card p-3 mb-4">
+            <img src="@(string.IsNullOrEmpty(Model.ThumbnailUrl) ? "https://placehold.co/400x250?text=No+Image" : Model.ThumbnailUrl)"
+                 class="img-fluid rounded mb-3" style="width: 100%; height: 180px; object-fit: cover;" alt="@Model.Title" />
+            <h5 class="fw-bold">ข้อมูลคอร์ส</h5>
+            <ul class="list-unstyled mb-0">
+                <li class="py-1 border-bottom"><strong>ประเภท:</strong> @(Model.IsFree ? "คอร์สฟรี" : "คอร์สเสียเงิน")</li>
+                <li class="py-1 border-bottom"><strong>ราคา:</strong> ฿@Model.Price.ToString("N0")</li>
+                <li class="py-1 border-bottom"><strong>หมวดหมู่:</strong> @Model.Category</li>
+                <li class="py-1 border-bottom"><strong>ระดับ:</strong> @Model.Level</li>
+                <li class="py-1 border-bottom"><strong>ผู้สอน:</strong> @Model.InstructorName (@Model.InstructorTitle)</li>
+                <li class="py-1 border-bottom"><strong>ความยาว:</strong> @Model.DurationHours ชั่วโมง</li>
+                <li class="py-1"><strong>ผู้ลงทะเบียน:</strong> @Model.Enrollments.Count คน</li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,290 @@
+@model DuckUpskill.ViewModels.CoursePlayerViewModel
+@{
+    ViewData["Title"] = Model.CurrentLesson.Title + " - " + Model.Course.Title;
+}
+
+<div class="container-fluid py-4" style="background-color: #F4F5F7; min-height: calc(100vh - 140px);">
+    <div class="container-fluid px-lg-4">
+        <!-- Header / Breadcrumb -->
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <a asp-action="Details" asp-route-id="@Model.Course.Slug" class="btn btn-sm btn-light border rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                ←
+            </a>
+            <div>
+                <div class="small text-muted">คอร์สเรียน / @Model.Course.Title</div>
+                <div class="fw-bold text-truncate" style="max-width: 500px;">@Model.CurrentLesson.Title</div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Main Content: Video + Lesson Content -->
+            <div class="col-lg-8">
+                <div class="player-container mb-4">
+                    @if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
+                    {
+                        <div class="player-video-wrap">
+                            @if (Model.CurrentLesson.VideoUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || Model.CurrentLesson.VideoUrl.EndsWith(".webm", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <video id="lessonVideo" controls playsinline preload="metadata">
+                                    <source src="@Model.CurrentLesson.VideoUrl" />
+                                    เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
+                                </video>
+                            }
+                            else
+                            {
+                                <iframe id="lessonVideoFrame"
+                                        src="@Model.CurrentLesson.VideoUrl"
+                                        title="@Model.CurrentLesson.Title"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        allowfullscreen>
+                                </iframe>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column align-items-center justify-content-center text-white p-5" style="height: 350px;">
+                            <div style="font-size: 4rem;">📖</div>
+                            <h4 class="mt-3">บทเรียนนี้ไม่มีวิดีโอ</h4>
+                            <p class="text-white-50">อ่านเนื้อหาบทเรียนด้านล่างเพื่อเริ่มต้นเรียนรู้</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-warning text-dark mb-2">บทที่ @Model.CurrentLesson.OrderNumber</span>
+                            <h3 class="fw-bold mb-1">@Model.CurrentLesson.Title</h3>
+                            <div class="text-muted small">⏱️ ความยาวประมาณ @Model.CurrentLesson.DurationMinutes นาที</div>
+                        </div>
+                        <div>
+                            @if (Model.CompletedLessonIds.Contains(Model.CurrentLesson.Id))
+                            {
+                                <span class="badge bg-success px-3 py-2">✓ เรียนจบบทนี้แล้ว</span>
+                            }
+                            else
+                            {
+                                <form asp-action="CompleteLesson" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="lessonId" value="@Model.CurrentLesson.Id" />
+                                    @if (Model.CurrentVideoRequiresWatch)
+                                    {
+                                        <button id="completeLessonButton" type="submit" class="btn btn-outline-success fw-bold" disabled="@(!Model.CurrentVideoWatched)">
+                                            @(Model.CurrentVideoWatched ? "✓ ทำเครื่องหมายว่าเรียนจบแล้ว" : "🔒 ดูวิดีโอให้จบก่อน")
+                                        </button>
+                                        <div id="videoCompletionHint" class="small text-muted text-end mt-1">
+                                            @(Model.CurrentVideoWatched ? "ดูวิดีโอจบแล้ว สามารถบันทึกความคืบหน้าได้" : "ปุ่มจะเปิดเมื่อวิดีโอจบ")
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-outline-success fw-bold">✓ ทำเครื่องหมายว่าเรียนจบแล้ว</button>
+                                    }
+                                </form>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div style="line-height: 1.8; white-space: pre-line;">
+                        @Model.CurrentLesson.Content
+                    </div>
+
+                    <!-- Prev / Next Buttons -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <div>
+                            @if (Model.PreviousLesson != null)
+                            {
+                                <a asp-action="Learn" asp-route-id="@Model.Course.Slug" asp-route-lessonId="@Model.PreviousLesson.Id" class="btn btn-light border">
+                                    ← บทก่อนหน้า
+                                </a>
+                            }
+                        </div>
+                        <div>
+                            @if (Model.NextLesson != null)
+                            {
+                                <a asp-action="Learn" asp-route-id="@Model.Course.Slug" asp-route-lessonId="@Model.NextLesson.Id" class="btn btn-duck-primary fw-bold">
+                                    บทถัดไป →
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Learning" asp-action="MyCourses" class="btn btn-success fw-bold">
+                                    🎉 กลับไปหน้าคอร์สของฉัน
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar: Course Progress + Playlist -->
+            <div class="col-lg-4">
+                <!-- Progress Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <div class="small text-muted">ความคืบหน้าของคุณ</div>
+                            <div class="fw-bold">@Model.Course.Title</div>
+                        </div>
+                        <div class="fs-4 fw-bold text-warning">@Model.ProgressPercent%</div>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @Model.ProgressPercent%" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        @Model.CompletedLessonIds.Count จาก @Model.Lessons.Count บทเรียนที่เรียนจบแล้ว
+                    </div>
+                </div>
+
+                <!-- Playlist -->
+                <div class="playlist-card shadow-sm">
+                    <div class="p-3 bg-light border-bottom">
+                        <h5 class="fw-bold mb-1">📋 เนื้อหาคอร์ส (Course Content)</h5>
+                        <div class="small text-muted">@Model.Lessons.Count บทเรียน • @Model.Course.DurationHours ชั่วโมง</div>
+                    </div>
+                    <div style="max-height: 550px; overflow-y: auto;">
+                        @if (Model.HasPreTest)
+                        {
+                            <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@Model.Course.Id" asp-route-type="PreTest" class="lesson-list-item assessment-list-item">
+                                <span class="lesson-check @(Model.LatestPreTestAttemptId.HasValue ? "completed" : "")">@(Model.LatestPreTestAttemptId.HasValue ? "✓" : "")</span>
+                                <div class="flex-grow-1">
+                                    <div class="small fw-semibold">📝 Pre-test: แบบทดสอบก่อนเรียน</div>
+                                    <div class="small text-muted">@(Model.LatestPreTestAttemptId.HasValue ? "ทำแบบทดสอบแล้ว · ทำอีกครั้งได้" : "ประเมินความรู้ก่อนเริ่มเรียน")</div>
+                                </div>
+                                <span class="assessment-list-badge">ก่อนเรียน</span>
+                            </a>
+                        }
+                        @foreach (var lesson in Model.Lessons)
+                        {
+                            var isCompleted = Model.CompletedLessonIds.Contains(lesson.Id);
+                            var isActive = lesson.Id == Model.CurrentLesson.Id;
+                            <a asp-action="Learn" asp-route-id="@Model.Course.Slug" asp-route-lessonId="@lesson.Id"
+                               class="lesson-list-item @(isActive ? "active" : "")">
+                                <span class="lesson-check @(isCompleted ? "completed" : "")">
+                                    @(isCompleted ? "✓" : "")
+                                </span>
+                                <div class="flex-grow-1">
+                                    <div class="small fw-semibold">@lesson.Title</div>
+                                    <div class="small text-muted">@lesson.DurationMinutes นาที</div>
+                                </div>
+                                @if (isActive)
+                                {
+                                    <span class="text-warning">▶️</span>
+                                }
+                            </a>
+                        }
+                        @if (Model.HasPostTest)
+                        {
+                            <div class="lesson-list-item assessment-list-item @(Model.CanTakePostTest ? "" : "assessment-locked")" aria-disabled="@(!Model.CanTakePostTest)">
+                                <span class="lesson-check @(Model.LatestPostTestAttemptId.HasValue ? "completed" : "")">@(Model.LatestPostTestAttemptId.HasValue ? "✓" : "")</span>
+                                <div class="flex-grow-1">
+                                    <div class="small fw-semibold">📝 Post-test: แบบทดสอบหลังเรียน</div>
+                                    <div class="small text-muted">
+                                        @if (Model.LatestPostTestAttemptId.HasValue)
+                                        {
+                                            <span>ทำแบบทดสอบแล้ว · ทำใหม่ได้</span>
+                                        }
+                                        else if (Model.CanTakePostTest)
+                                        {
+                                            <span>เรียนครบแล้ว · พร้อมทำแบบทดสอบ</span>
+                                        }
+                                        else
+                                        {
+                                            <span>🔒 ทำได้เมื่อเรียนบทเรียนครบทุกบท</span>
+                                        }
+                                    </div>
+                                </div>
+                                @if (Model.CanTakePostTest)
+                                {
+                                    <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@Model.Course.Id" asp-route-type="PostTest" class="btn btn-sm btn-outline-success fw-bold">เริ่ม</a>
+                                }
+                                else
+                                {
+                                    <span class="assessment-list-badge">หลังเรียน</span>
+                                }
+                            </div>
+                        }
+                        @if (Model.CertificateId.HasValue)
+                        {
+                            <a asp-controller="Assessments" asp-action="Certificate" asp-route-courseId="@Model.Course.Id" class="lesson-list-item assessment-list-item certificate-list-item">
+                                <span class="lesson-check completed">✓</span>
+                                <div class="flex-grow-1">
+                                    <div class="small fw-semibold">🏅 Certificate</div>
+                                    <div class="small text-muted">ดูและพิมพ์ใบประกาศนียบัตร</div>
+                                </div>
+                                <span class="text-success">→</span>
+                            </a>
+                        }
+                    </div>
+                    <div class="p-3 border-top bg-light">
+                        <a asp-controller="Learning" asp-action="MyCourses" class="btn btn-sm btn-outline-secondary w-100">
+                            ← กลับไปหน้าคอร์สของฉัน
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const video = document.getElementById('lessonVideo');
+            const frame = document.getElementById('lessonVideoFrame');
+            const button = document.getElementById('completeLessonButton');
+            const hint = document.getElementById('videoCompletionHint');
+            if (!button) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const markWatched = async function () {
+                const response = await fetch('@Url.Action("MarkVideoWatched", "Courses")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({ lessonId: '@Model.CurrentLesson.Id' })
+                });
+                if (!response.ok) return;
+                button.disabled = false;
+                button.textContent = '✓ ทำเครื่องหมายว่าเรียนจบแล้ว';
+                if (hint) hint.textContent = 'ดูวิดีโอจบแล้ว สามารถบันทึกความคืบหน้าได้';
+            };
+
+            if (video) {
+                video.addEventListener('ended', markWatched);
+                return;
+            }
+
+            // YouTube's IFrame API reports when playback reaches the end.
+            if (frame && /youtube(?:-nocookie)?\.com\/embed\//i.test(frame.src)) {
+                const videoUrl = new URL(frame.src);
+                videoUrl.searchParams.set('enablejsapi', '1');
+                videoUrl.searchParams.set('origin', window.location.origin);
+                frame.src = videoUrl.toString();
+
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(tag);
+
+                window.onYouTubeIframeAPIReady = function () {
+                    new YT.Player(frame, {
+                        events: {
+                            onStateChange: function (event) {
+                                if (event.data === YT.PlayerState.ENDED) {
+                                    markWatched();
+                                }
+                            }
+                        }
+                    });
+                };
+            } else if (frame && hint) {
+                hint.textContent = 'วิดีโอนี้ไม่รองรับการตรวจจับเมื่อเล่นจบ';
+            }
+        });
+    </script>
+}

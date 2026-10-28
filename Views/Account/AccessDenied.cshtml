@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "ไม่มีสิทธิ์เข้าถึง";
+}
+
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-sm rounded-4 p-5 mx-auto" style="max-width: 620px;">
+        <div style="font-size: 5rem;">🔒🦆</div>
+        <h2 class="fw-bold mt-3">ขออภัย คุณไม่มีสิทธิ์เข้าถึงหน้านี้</h2>
+        <p class="text-muted">ส่วนนี้อาจสงวนไว้สำหรับผู้เรียนที่ลงทะเบียน หรือเฉพาะผู้ดูแลระบบ (Admin) เท่านั้น</p>
+        <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-duck-primary fw-bold">กลับสู่หน้าหลัก</a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">เข้าสู่ระบบสมาชิก</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+@model DuckUpskill.Models.Order
+@{
+    ViewData["Title"] = "รายละเอียดคำสั่งซื้อ: " + Model.OrderNumber;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปรายการสั่งซื้อ</a>
+    <h2 class="fw-bold mt-2">🧾 รายละเอียดคำสั่งซื้อ: @Model.OrderNumber</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card p-4 mb-4">
+            <h5 class="fw-bold border-bottom pb-2">ข้อมูลคอร์สที่สั่งซื้อ</h5>
+            <div class="d-flex align-items-center gap-3 my-3">
+                <img src="@(string.IsNullOrEmpty(Model.Course?.ThumbnailUrl) ? "https://placehold.co/120x80" : Model.Course.ThumbnailUrl)"
+                     class="rounded" style="width: 110px; height: 75px; object-fit: cover;" alt="course thumb" />
+                <div>
+                    <h5 class="fw-bold mb-1">@Model.Course?.Title</h5>
+                    <div class="text-muted small">ผู้สอน: @Model.Course?.InstructorName | หมวดหมู่: @Model.Course?.Category</div>
+                    <div class="fw-bold text-warning-emphasis fs-5 mt-1">฿@Model.Amount.ToString("N0")</div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold border-bottom pb-2 mt-4">ข้อมูลผู้สั่งซื้อ</h5>
+            <div class="row mt-2">
+                <div class="col-sm-6 mb-2">
+                    <span class="text-muted d-block small">ชื่อ-นามสกุล</span>
+                    <strong>@(Model.User?.FullName ?? "N/A")</strong>
+                </div>
+                <div class="col-sm-6 mb-2">
+                    <span class="text-muted d-block small">อีเมล</span>
+                    <strong>@(Model.User?.Email ?? "N/A")</strong>
+                </div>
+            </div>
+
+            <h5 class="fw-bold border-bottom pb-2 mt-4">ข้อมูลการชำระเงิน</h5>
+            <div class="row mt-2">
+                <div class="col-sm-6 mb-2">
+                    <span class="text-muted d-block small">วิธีการชำระ</span>
+                    <strong>@Model.PaymentMethod</strong>
+                </div>
+                <div class="col-sm-6 mb-2">
+                    <span class="text-muted d-block small">รหัสอ้างอิงสลิป / หมายเหตุ</span>
+                    <strong>@(string.IsNullOrEmpty(Model.SlipReference) ? "-" : Model.SlipReference)</strong>
+                </div>
+                <div class="col-sm-6 mb-2">
+                    <span class="text-muted d-block small">วันที่สั่งซื้อ</span>
+                    <span>@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span>
+                </div>
+                <div class="col-sm-6 mb-2">
+                    <span class="text-muted d-block small">วันที่ชำระเงิน</span>
+                    <span>@(Model.PaidAt.HasValue ? Model.PaidAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") : "ยังไม่ชำระ")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card p-4">
+            <h5 class="fw-bold mb-3">สถานะคำสั่งซื้อ</h5>
+            <div class="mb-3">
+                @if (Model.Status == OrderStatus.Completed)
+                {
+                    <div class="alert alert-success fw-bold text-center mb-0">✓ ชำระเงินเรียบร้อย</div>
+                }
+                else if (Model.Status == OrderStatus.Pending)
+                {
+                    <div class="alert alert-warning fw-bold text-center mb-0">⏳ รอชำระเงิน</div>
+                }
+                else
+                {
+                    <div class="alert alert-danger fw-bold text-center mb-0">✕ ยกเลิกแล้ว</div>
+                }
+            </div>
+
+            <div class="d-grid gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning fw-bold">
+                    ✏️ ปรับเปลี่ยนสถานะคำสั่งซื้อ
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                    🗑️ ลบคำสั่งซื้อ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

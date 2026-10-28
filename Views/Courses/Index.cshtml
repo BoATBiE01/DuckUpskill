@@ -1,0 +1,127 @@
+@model DuckUpskill.ViewModels.CourseCatalogViewModel
+@{
+    ViewData["Title"] = "คอร์สเรียนทั้งหมด";
+}
+
+<div class="py-4 bg-white border-bottom mb-4">
+    <div class="container">
+        <h1 class="fw-bold mb-1">📚 คอร์สเรียนทั้งหมด (All Courses)</h1>
+        <p class="text-muted mb-0">ค้นหาและเลือกเรียนคอร์สที่เหมาะกับเป้าหมายของคุณ ทั้งแบบฟรีและเสียเงิน</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Filter and Search Bar -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-lg-5 col-md-12">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">🔍</span>
+                    <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control border-start-0" placeholder="พิมพ์ชื่อคอร์ส หรือคำอธิบาย..." />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-5">
+                <select name="category" class="form-select">
+                    <option value="">ทุกหมวดหมู่การเรียนรู้</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <!option value="@cat" @(Model.Category == cat ? "selected" : "")>@cat</!option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <select name="priceType" class="form-select">
+                    <option value="">ทุกประเภทราคา</option>
+                    <!option value="free" @(Model.PriceType == "free" ? "selected" : "")>🎁 คอร์สฟรี (Free)</!option>
+                    <!option value="paid" @(Model.PriceType == "paid" ? "selected" : "")>💎 คอร์สเสียเงิน (Paid)</!option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-duck-primary fw-bold w-100">ค้นหา</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">ล้าง</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Filter Pills -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(Model.PriceType) ? "btn-warning text-dark fw-bold" : "btn-light border")">
+            ทั้งหมด (@Model.Courses.Count())
+        </a>
+        <a asp-action="Index" asp-route-priceType="free" asp-route-category="@Model.Category" class="btn btn-sm @(Model.PriceType == "free" ? "btn-success fw-bold" : "btn-light border")">
+            🎁 คอร์สฟรี
+        </a>
+        <a asp-action="Index" asp-route-priceType="paid" asp-route-category="@Model.Category" class="btn btn-sm @(Model.PriceType == "paid" ? "btn-warning text-dark fw-bold" : "btn-light border")">
+            💎 คอร์สพรีเมียม
+        </a>
+    </div>
+
+    <!-- Course Grid -->
+    <div class="row g-4">
+        @if (!Model.Courses.Any())
+        {
+            <div class="col-12 py-5 text-center">
+                <div style="font-size: 4rem;">🦆❓</div>
+                <h4 class="fw-bold mt-2">ไม่พบคอร์สเรียนที่ตรงกับเงื่อนไข</h4>
+                <p class="text-muted">ลองปรับเปลี่ยนคำค้นหา หรือกดปุ่ม "ล้าง" เพื่อดูคอร์สทั้งหมด</p>
+                <a asp-action="Index" class="btn btn-duck-primary fw-bold mt-2">ดูคอร์สทั้งหมด</a>
+            </div>
+        }
+        @foreach (var course in Model.Courses)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="course-card">
+                    <div class="course-thumb-wrap">
+                        <img src="@(string.IsNullOrEmpty(course.ThumbnailUrl) ? "https://placehold.co/600x400" : course.ThumbnailUrl)"
+                             class="course-thumb" alt="@course.Title" />
+                        @if (course.IsFree)
+                        {
+                            <span class="badge-price-free">ฟรี (Free)</span>
+                        }
+                        else
+                        {
+                            <span class="badge-price-paid">฿@course.Price.ToString("N0")</span>
+                        }
+                    </div>
+                    <div class="course-card-body">
+                        <div class="course-category">@course.Category</div>
+                        <h4 class="course-title">
+                            <a asp-action="Details" asp-route-id="@course.Slug" class="text-decoration-none text-dark">
+                                @course.Title
+                            </a>
+                        </h4>
+                        <p class="course-desc">@course.ShortDescription</p>
+
+                        <div class="d-flex align-items-center gap-2 mb-3 small text-muted">
+                            <span>⏱️ @course.DurationHours ชม.</span>
+                            <span>•</span>
+                            <span>📖 @course.Lessons.Count บทเรียน</span>
+                            <span>•</span>
+                            <span>⭐ @course.Rating.ToString("F1")</span>
+                        </div>
+
+                        <div class="course-footer">
+                            <div>
+                                @if (course.IsFree)
+                                {
+                                    <span class="price-display text-success">ฟรี 0 บาท</span>
+                                }
+                                else
+                                {
+                                    <span class="price-display">฿@course.Price.ToString("N0")</span>
+                                    @if (course.OriginalPrice.HasValue)
+                                    {
+                                        <span class="original-price">฿@course.OriginalPrice.Value.ToString("N0")</span>
+                                    }
+                                }
+                            </div>
+                            <a asp-action="Details" asp-route-id="@course.Slug" class="btn btn-sm btn-duck-primary fw-semibold">
+                                รายละเอียด
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

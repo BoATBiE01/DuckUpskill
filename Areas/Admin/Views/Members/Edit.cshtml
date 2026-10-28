@@ -1,0 +1,56 @@
+@model DuckUpskill.Models.ApplicationUser
+@{
+    ViewData["Title"] = "แก้ไขผู้ใช้";
+    var isAdmin = (bool?)ViewBag.IsAdmin ?? false;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปจัดการสมาชิก</a>
+    <h2 class="fw-bold mt-2">✏️ แก้ไขผู้ใช้: @Model.FullName</h2>
+</div>
+
+<div class="admin-card p-4">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="RegisteredAt" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="FullName" class="form-label fw-semibold"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label fw-semibold"></label>
+                <input asp-for="Email" type="email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PhoneNumber" class="form-label fw-semibold">เบอร์โทรศัพท์</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ProfilePictureUrl" class="form-label fw-semibold">รูปโปรไฟล์ (URL)</label>
+                <input asp-for="ProfilePictureUrl" class="form-control" />
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input type="checkbox" name="makeAdmin" value="true" class="form-check-input" id="makeAdmin" @(isAdmin ? "checked" : "") />
+                    <label class="form-check-label fw-semibold" for="makeAdmin">กำหนดสิทธิ์ผู้ดูแลระบบ (Admin)</label>
+                    <div class="form-text text-danger">เปิดใช้เฉพาะผู้ที่ต้องบริหารข้อมูลในระบบเท่านั้น</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+            <a asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a>
+            <button type="submit" class="btn btn-duck-primary fw-bold px-4">💾 บันทึกการแก้ไข</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

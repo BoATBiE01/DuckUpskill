@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "ศูนย์ช่วยเหลือและติดต่อเรา";
+}
+
+<section class="support-hero py-5">
+    <div class="container text-center">
+        <div class="support-duck">🦆</div>
+        <span class="badge bg-warning text-dark px-3 py-2 mb-3">DUCKUPSKILL SUPPORT</span>
+        <h1 class="display-5 fw-bold mb-3">มีคำถามหรืออยากให้ช่วยอะไรไหม?</h1>
+        <p class="lead text-muted mx-auto mb-0" style="max-width: 680px;">
+            ติดต่อทีมงาน DuckUpskill ได้ผ่านช่องทางที่สะดวก เราพร้อมช่วยเหลือเรื่องคอร์ส การเข้าใช้งาน และปัญหาต่าง ๆ ครับ
+        </p>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="https://line.me/" target="_blank" rel="noopener noreferrer" class="support-channel support-line">
+                <div class="support-channel-icon">💬</div>
+                <div>
+                    <h2 class="h5 fw-bold mb-1">LINE Official</h2>
+                    <p class="text-muted small mb-2">แชตสอบถามทีมงานโดยตรง</p>
+                    <span class="support-handle">@@DuckUpskill</span>
+                </div>
+                <span class="support-arrow">↗</span>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="support-channel support-facebook">
+                <div class="support-channel-icon">f</div>
+                <div>
+                    <h2 class="h5 fw-bold mb-1">Facebook Page</h2>
+                    <p class="text-muted small mb-2">ข่าวสาร โปรโมชัน และอัปเดต</p>
+                    <span class="support-handle">DuckUpskill Thailand</span>
+                </div>
+                <span class="support-arrow">↗</span>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="support-channel support-instagram">
+                <div class="support-channel-icon">◎</div>
+                <div>
+                    <h2 class="h5 fw-bold mb-1">Instagram</h2>
+                    <p class="text-muted small mb-2">ติดตามเบื้องหลังและเคล็ดลับ</p>
+                    <span class="support-handle">@@duckupskill</span>
+                </div>
+                <span class="support-arrow">↗</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 p-md-5">
+                <h2 class="h4 fw-bold mb-1">ส่งคำถามถึงทีมงาน</h2>
+                <p class="text-muted mb-4">กรอกข้อมูลไว้ก่อน แล้วทีมงานจะติดต่อกลับตามช่องทางที่แจ้งไว้</p>
+                <form onsubmit="return submitSupportForm(event)">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="supportName">ชื่อของคุณ</label>
+                            <input id="supportName" class="form-control" required placeholder="ชื่อ-นามสกุล" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="supportEmail">อีเมล</label>
+                            <input id="supportEmail" type="email" class="form-control" required placeholder="name@example.com" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="supportTopic">หัวข้อที่ต้องการติดต่อ</label>
+                            <select id="supportTopic" class="form-select" required>
+                                <option value="">เลือกหัวข้อ</option>
+                                <option>ปัญหาการเข้าสู่ระบบ</option>
+                                <option>ปัญหาการชำระเงินหรือคำสั่งซื้อ</option>
+                                <option>ปัญหาการเข้าเรียนหรือวิดีโอ</option>
+                                <option>สอบถามเกี่ยวกับคอร์สเรียน</option>
+                                <option>ข้อเสนอแนะเกี่ยวกับเว็บไซต์</option>
+                                <option>อื่น ๆ</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="supportMessage">รายละเอียด</label>
+                            <textarea id="supportMessage" class="form-control" rows="5" required placeholder="อธิบายปัญหาหรือคำถามของคุณ"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-duck-primary fw-bold px-4">ส่งข้อความถึงทีมงาน →</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="supportNotice" class="alert alert-success mt-3 d-none" role="alert">
+                    รับข้อความเรียบร้อยแล้วครับ ทีมงานจะติดต่อกลับโดยเร็วที่สุด
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 p-md-5 support-info-card">
+                <h2 class="h4 fw-bold mb-4">ช่องทางอื่น ๆ</h2>
+                <div class="support-info-row"><span>✉️</span><div><strong>อีเมล</strong><br /><a href="mailto:support@duckupskill.com">support@duckupskill.com</a></div></div>
+                <div class="support-info-row"><span>⏰</span><div><strong>เวลาทำการ</strong><br /><small class="text-muted">จันทร์–ศุกร์ 09:00–18:00 น.</small></div></div>
+                <div class="support-info-row"><span>⚡</span><div><strong>เวลาตอบกลับ</strong><br /><small class="text-muted">ภายใน 1 วันทำการ</small></div></div>
+                <hr class="my-4" />
+                <h3 class="h6 fw-bold">คำถามที่พบบ่อย</h3>
+                <a asp-controller="Courses" asp-action="Index" class="support-faq-link">ดูคอร์สเรียนทั้งหมด <span>→</span></a>
+                <a asp-controller="Account" asp-action="Login" class="support-faq-link">มีปัญหาเข้าสู่ระบบ? <span>→</span></a>
+                <a asp-controller="Orders" asp-action="History" class="support-faq-link">ตรวจสอบประวัติการสั่งซื้อ <span>→</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function submitSupportForm(event) {
+            event.preventDefault();
+            document.getElementById('supportNotice').classList.remove('d-none');
+            event.target.reset();
+            return false;
+        }
+    </script>
+}

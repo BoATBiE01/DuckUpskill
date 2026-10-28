@@ -1,0 +1,53 @@
+@model DuckUpskill.ViewModels.AssessmentQuestionFormViewModel
+@{
+    var course = ViewBag.Course as DuckUpskill.Models.Course;
+    var isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "แก้ไขข้อสอบ" : "เพิ่มโจทย์ข้อสอบ";
+}
+
+<div class="container py-4" style="max-width: 850px;">
+    <a asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-type="@Model.Type" class="text-decoration-none text-muted">← กลับไปจัดการข้อสอบ</a>
+    <h1 class="h3 fw-bold mt-3">@(isEdit ? "✏️ แก้ไขโจทย์" : "➕ เพิ่มโจทย์")</h1>
+    <p class="text-muted">@course?.Title · @(Model.Type == AssessmentType.PreTest ? "Pre-test" : "Post-test")</p>
+
+    <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" class="card border-0 shadow-sm rounded-4 p-4">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="CourseId" type="hidden" />
+        <input asp-for="Type" type="hidden" />
+
+        <div class="mb-3">
+            <label asp-for="Text" class="form-label fw-bold">โจทย์</label>
+            <textarea asp-for="Text" rows="3" class="form-control"></textarea>
+            <span asp-validation-for="Text" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="OrderNumber" class="form-label fw-bold">ลำดับข้อ</label>
+            <input asp-for="OrderNumber" class="form-control" type="number" min="1" />
+            <span asp-validation-for="OrderNumber" class="text-danger small"></span>
+        </div>
+
+        <h2 class="h6 fw-bold mt-2">ตัวเลือกคำตอบ (กรอกครบ 4 ตัวเลือก)</h2>
+        @for (var i = 1; i <= 4; i++)
+        {
+            var propertyName = $"Option{i}";
+            var selected = Model.CorrectOption == i;
+            <div class="input-group mb-2">
+                <div class="input-group-text">
+                    <input type="radio" name="CorrectOption" value="@i" checked="@selected" aria-label="กำหนดตัวเลือก @i เป็นคำตอบที่ถูกต้อง" />
+                </div>
+                <span class="input-group-text">@i</span>
+                <input name="@propertyName" value="@(i == 1 ? Model.Option1 : i == 2 ? Model.Option2 : i == 3 ? Model.Option3 : Model.Option4)" class="form-control" placeholder="ตัวเลือก @i" required />
+            </div>
+        }
+        <div class="form-text mb-4">เลือกปุ่มวงกลมหน้าตัวเลือกที่เป็นคำตอบถูกต้อง</div>
+
+        <div class="d-flex justify-content-between border-top pt-3">
+            <a asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-type="@Model.Type" class="btn btn-outline-secondary">ยกเลิก</a>
+            <button type="submit" class="btn btn-duck-primary fw-bold">💾 บันทึกโจทย์</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

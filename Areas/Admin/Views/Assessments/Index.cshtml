@@ -1,0 +1,50 @@
+@model IEnumerable<DuckUpskill.Models.AssessmentQuestion>
+@{
+    var course = ViewBag.Course as DuckUpskill.Models.Course;
+    var selectedType = ViewBag.Type as DuckUpskill.Models.AssessmentType?;
+    ViewData["Title"] = "จัดการ Pre-test / Post-test";
+}
+
+<div class="mb-4">
+    <a asp-area="Admin" asp-controller="Courses" asp-action="Index" class="text-decoration-none text-muted small">← กลับไปคอร์ส</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mt-2">
+        <div>
+            <h1 class="h3 fw-bold mb-1">📝 ข้อสอบ: @course?.Title</h1>
+            <p class="text-muted mb-0">คะแนนผ่าน Post-test สำหรับ Certificate: @course?.CertificatePassingScore%</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" asp-route-courseId="@course?.Id" class="btn btn-outline-secondary">ทั้งหมด</a>
+            <a asp-action="Index" asp-route-courseId="@course?.Id" asp-route-type="PreTest" class="btn btn-outline-primary">Pre-test</a>
+            <a asp-action="Index" asp-route-courseId="@course?.Id" asp-route-type="PostTest" class="btn btn-outline-success">Post-test</a>
+            <a asp-action="Create" asp-route-courseId="@course?.Id" asp-route-type="@(selectedType ?? AssessmentType.PreTest)" class="btn btn-duck-primary">➕ เพิ่มโจทย์</a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>ประเภท</th><th>ลำดับ</th><th>โจทย์</th><th>ตัวเลือก</th><th>คำตอบถูก</th><th class="text-end">จัดการ</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6" class="text-center text-muted py-5">ยังไม่มีโจทย์ในหมวดนี้ เพิ่มข้อสอบได้จากปุ่มด้านบน</td></tr>
+            }
+            @foreach (var question in Model)
+            {
+                <tr>
+                    <td><span class="badge @(question.Type == AssessmentType.PreTest ? "bg-primary" : "bg-success")">@(question.Type == AssessmentType.PreTest ? "Pre-test" : "Post-test")</span></td>
+                    <td>@question.OrderNumber</td>
+                    <td class="fw-semibold">@question.Text</td>
+                    <td>@question.Options.Count</td>
+                    <td>@question.Options.FirstOrDefault(o => o.IsCorrect)?.Text</td>
+                    <td class="text-end text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@question.Id" class="btn btn-sm btn-outline-warning">แก้ไข</a>
+                        <a asp-action="Delete" asp-route-id="@question.Id" class="btn btn-sm btn-outline-danger">ลบ</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

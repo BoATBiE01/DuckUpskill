@@ -1,0 +1,80 @@
+@model DuckUpskill.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "เข้าสู่ระบบผู้ดูแลระบบ (Admin Login)";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5" style="border-top: 5px solid #DC2626 !important;">
+                <div class="text-center mb-4">
+                    <div style="font-size: 3.5rem;">👑🦆</div>
+                    <span class="badge bg-danger px-3 py-1 mb-2">ADMINISTRATOR ONLY</span>
+                    <h3 class="fw-bold mb-1">เข้าสู่ระบบผู้ดูแลระบบ</h3>
+                    <p class="text-muted small">เฉพาะทีมงานและผู้ดูแล DuckUpskill เพื่อเข้าถึง Admin Dashboard</p>
+                </div>
+
+                <!-- Switch back to normal member -->
+                <div class="alert alert-light border d-flex align-items-center justify-content-between p-2 mb-4">
+                    <span class="small text-muted">เข้าสู่ระบบสมาชิกทั่วไป?</span>
+                    <a asp-action="Login" class="btn btn-sm btn-outline-warning text-dark fw-bold">
+                        🎓 สำหรับสมาชิก
+                    </a>
+                </div>
+
+                <form asp-action="AdminLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold">อีเมลผู้ดูแลระบบ</label>
+                        <input asp-for="Email" id="adminEmail" class="form-control form-control-lg fs-6" placeholder="admin@duckupskill.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-semibold">รหัสผ่านผู้ดูแลระบบ</label>
+                        <input asp-for="Password" id="adminPass" class="form-control form-control-lg fs-6" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label small"></label>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-lg btn-danger fw-bold">
+                            🔐 เข้าสู่ระบบ Admin Dashboard
+                        </button>
+                    </div>
+
+                    <!-- Quick Demo Fill Button for Admin -->
+                    <div class="p-3 bg-light rounded-3 text-center border">
+                        <div class="small fw-semibold text-muted mb-2">⚡ บัญชีทดสอบสำหรับ Admin (Master Demo):</div>
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-bold w-100" onclick="fillAdminDemo()">
+                            คลิกเพื่อกรอกบัญชี Admin (admin@duckupskill.com)
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4 small">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-decoration-none">
+                            ← กลับไปหน้าแรกของเว็บไซต์
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function fillAdminDemo() {
+            document.getElementById('adminEmail').value = 'admin@duckupskill.com';
+            document.getElementById('adminPass').value = 'Admin@Duck123!';
+        }
+    </script>
+}

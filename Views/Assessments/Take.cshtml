@@ -1,0 +1,38 @@
+@model DuckUpskill.ViewModels.AssessmentViewModel
+@{
+    var isPreTest = Model.Type == AssessmentType.PreTest;
+    ViewData["Title"] = (isPreTest ? "Pre-test - " : "Post-test - ") + Model.Course.Title;
+}
+
+<div class="container py-4" style="max-width: 900px;">
+    <a asp-controller="Learning" asp-action="MyCourses" class="text-decoration-none text-muted">← กลับไปการเรียนของฉัน</a>
+    <div class="card border-0 shadow-sm rounded-4 p-4 mt-3">
+        <span class="badge @(isPreTest ? "bg-primary" : "bg-success") align-self-start">@(isPreTest ? "PRE-TEST · ก่อนเรียน" : "POST-TEST · หลังเรียน")</span>
+        <h1 class="h3 fw-bold mt-2">@Model.Course.Title</h1>
+        <p class="text-muted">@Model.Questions.Count ข้อ · เลือกคำตอบที่ถูกต้องที่สุดเพียงข้อเดียว</p>
+
+        <form asp-action="Submit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="CourseId" value="@Model.Course.Id" />
+            <input type="hidden" name="Type" value="@Model.Type" />
+            @for (var i = 0; i < Model.Questions.Count; i++)
+            {
+                var question = Model.Questions[i];
+                <fieldset class="border rounded-4 p-3 p-md-4 mb-3">
+                    <legend class="fs-6 fw-bold">ข้อ @(i + 1). @question.Text</legend>
+                    @foreach (var option in question.Options.OrderBy(o => o.OrderNumber))
+                    {
+                        <label class="assessment-option">
+                            <input type="radio" name="SelectedOptions[@question.Id]" value="@option.Id" required />
+                            <span>@option.Text</span>
+                        </label>
+                    }
+                </fieldset>
+            }
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a asp-controller="Learning" asp-action="MyCourses" class="btn btn-outline-secondary">กลับ</a>
+                <button type="submit" class="btn btn-duck-primary fw-bold px-4">ส่งคำตอบ →</button>
+            </div>
+        </form>
+    </div>
+</div>

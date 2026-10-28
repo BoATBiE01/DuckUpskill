@@ -1,0 +1,27 @@
+@model DuckUpskill.Models.Lesson
+@{
+    ViewData["Title"] = "ยืนยันการลบบทเรียน";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="text-decoration-none text-muted small">← กลับไปรายการบทเรียน</a>
+    <h2 class="fw-bold text-danger mt-2">🗑️ ยืนยันการลบบทเรียน</h2>
+</div>
+
+<div class="admin-card p-4">
+    <p>คุณแน่ใจหรือไม่ว่าต้องการลบบทเรียนต่อไปนี้?</p>
+    <div class="alert alert-warning">
+        <strong>บทที่ @Model.OrderNumber: @Model.Title</strong><br />
+        <span class="small">คอร์ส: @Model.Course?.Title | ความยาว: @Model.DurationMinutes นาที</span>
+    </div>
+    <p class="text-danger small">การลบนี้ไม่สามารถย้อนกลับได้ และข้อมูลความคืบหน้าของผู้เรียนในบทนี้จะถูกลบด้วย</p>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-outline-secondary">ยกเลิก</a>
+            <button type="submit" class="btn btn-danger fw-bold px-4">ยืนยันการลบบทเรียน</button>
+        </div>
+    </form>
+</div>

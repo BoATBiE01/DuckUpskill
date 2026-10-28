@@ -1,0 +1,110 @@
+@model IEnumerable<DuckUpskill.Models.Order>
+@{
+    ViewData["Title"] = "จัดการรายการสั่งซื้อ";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1">💰 จัดการรายการสั่งซื้อ (Orders Management)</h2>
+        <p class="text-muted mb-0">ตรวจสอบคำสั่งซื้อ ยืนยันการชำระเงิน และประวัติธุรกรรมทั้งหมด</p>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="admin-card mb-4 p-3">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-6">
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="ค้นหาเลขที่คำสั่งซื้อ, ชื่อสมาชิก หรือ อีเมล..." />
+        </div>
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">ทุกสถานะ</option>
+                <!option value="Completed" @(ViewBag.SelectedStatus?.ToString() == "Completed" ? "selected" : "")>ชำระเงินเรียบร้อย (Completed)</!option>
+                <!option value="Pending" @(ViewBag.SelectedStatus?.ToString() == "Pending" ? "selected" : "")>รอชำระเงิน (Pending)</!option>
+                <!option value="Cancelled" @(ViewBag.SelectedStatus?.ToString() == "Cancelled" ? "selected" : "")>ยกเลิก (Cancelled)</!option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-dark w-100">ค้นหา</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">ล้าง</a>
+        </div>
+    </form>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>เลขที่คำสั่งซื้อ</th>
+                    <th>ผู้เรียน / สมาชิก</th>
+                    <th>คอร์สเรียน</th>
+                    <th>ยอดชำระ</th>
+                    <th>วิธีชำระ</th>
+                    <th>สถานะ</th>
+                    <th>วันที่</th>
+                    <th class="text-end" style="width: 140px;">การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            ไม่พบรายการคำสั่งซื้อ
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="fw-bold text-dark text-decoration-none">
+                                @item.OrderNumber
+                            </a>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@(item.User?.FullName ?? "N/A")</div>
+                            <small class="text-muted">@item.User?.Email</small>
+                        </td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 220px;" title="@item.Course?.Title">
+                                @item.Course?.Title
+                            </span>
+                        </td>
+                        <td class="fw-bold text-warning-emphasis">
+                            ฿@item.Amount.ToString("N0")
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.PaymentMethod</span>
+                        </td>
+                        <td>
+                            @if (item.Status == OrderStatus.Completed)
+                            {
+                                <span class="badge bg-success">ชำระแล้ว</span>
+                            }
+                            else if (item.Status == OrderStatus.Pending)
+                            {
+                                <span class="badge bg-warning text-dark">รอชำระ</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">ยกเลิก</span>
+                            }
+                        </td>
+                        <td class="small text-muted">
+                            @item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">ดู</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning text-dark">แก้ไข</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">ลบ</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

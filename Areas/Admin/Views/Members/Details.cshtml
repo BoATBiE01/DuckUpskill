@@ -1,0 +1,95 @@
+@model DuckUpskill.Models.ApplicationUser
+@{
+    ViewData["Title"] = "รายละเอียดสมาชิก: " + Model.FullName;
+    var roles = ViewBag.Roles as IList<string> ?? new List<string>();
+    var enrollments = ViewBag.Enrollments as List<DuckUpskill.Models.Enrollment> ?? new List<DuckUpskill.Models.Enrollment>();
+    var orders = ViewBag.Orders as List<DuckUpskill.Models.Order> ?? new List<DuckUpskill.Models.Order>();
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปจัดการสมาชิก</a>
+    <h2 class="fw-bold mt-2">👤 รายละเอียดสมาชิก</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="admin-card p-4 text-center">
+            <div class="admin-avatar mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2rem;">
+                @(Model.FullName?.FirstOrDefault() ?? 'U')
+            </div>
+            <h4 class="fw-bold mb-1">@Model.FullName</h4>
+            <div class="text-muted small mb-3">@Model.Email</div>
+
+            <div class="mb-3">
+                @foreach (var r in roles)
+                {
+                    <span class="badge @(r == "Admin" ? "bg-danger" : "bg-warning text-dark") px-3 py-2 fs-6">
+                        @(r == "Admin" ? "👑 Admin" : "🎓 Member")
+                    </span>
+                }
+            </div>
+
+            <div class="text-start border-top pt-3 small text-muted">
+                <div class="py-1"><strong>วันที่สมัคร:</strong> @Model.RegisteredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                <div class="py-1"><strong>เบอร์โทร:</strong> @(string.IsNullOrEmpty(Model.PhoneNumber) ? "-" : Model.PhoneNumber)</div>
+            </div>
+
+            <div class="d-grid mt-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning fw-bold">✏️ แก้ไขข้อมูล / สิทธิ์</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Enrolled Courses -->
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <h5 class="fw-bold mb-0">🎓 คอร์สที่ลงทะเบียน (@enrollments.Count คอร์ส)</h5>
+            </div>
+            <div class="p-3">
+                @if (!enrollments.Any())
+                {
+                    <p class="text-muted text-center py-3 mb-0">ยังไม่มีการลงทะเบียนคอร์สเรียน</p>
+                }
+                @foreach (var e in enrollments)
+                {
+                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                        <div>
+                            <strong>@e.Course?.Title</strong>
+                            <small class="text-muted d-block">ลงทะเบียนเมื่อ: @e.EnrolledAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                        </div>
+                        <span class="badge @(e.Course?.IsFree == true ? "bg-success" : "bg-warning text-dark")">
+                            @(e.Course?.IsFree == true ? "ฟรี" : "฿" + e.Course?.Price.ToString("N0"))
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Orders -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="fw-bold mb-0">🧾 ประวัติการสั่งซื้อ (@orders.Count รายการ)</h5>
+            </div>
+            <div class="p-3">
+                @if (!orders.Any())
+                {
+                    <p class="text-muted text-center py-3 mb-0">ยังไม่มีประวัติการสั่งซื้อ</p>
+                }
+                @foreach (var o in orders)
+                {
+                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                        <div>
+                            <strong>@o.OrderNumber</strong> - @o.Course?.Title
+                            <small class="text-muted d-block">@o.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") | @o.PaymentMethod</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">฿@o.Amount.ToString("N0")</div>
+                            <span class="badge @(o.Status == OrderStatus.Completed ? "bg-success" : "bg-secondary")">@o.Status</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,149 @@
+@model DuckUpskill.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">แผงควบคุมระบบ (Admin Dashboard)</h2>
+        <p class="text-muted mb-0">ยินดีต้อนรับสู่ระบบบริหารจัดการ DuckUpskill 🦆</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Courses" asp-action="Create" class="btn btn-duck-primary fw-semibold">
+            ➕ เพิ่มคอร์สใหม่
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon yellow">📚</div>
+            <div>
+                <div class="admin-stat-number">@Model.TotalCourses</div>
+                <div class="admin-stat-label">คอร์สทั้งหมด (ฟรี @Model.TotalFreeCourses / เสียเงิน @Model.TotalPaidCourses)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon blue">👥</div>
+            <div>
+                <div class="admin-stat-number">@Model.TotalMembers</div>
+                <div class="admin-stat-label">สมาชิกในระบบ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon green">🎓</div>
+            <div>
+                <div class="admin-stat-number">@Model.TotalEnrollments</div>
+                <div class="admin-stat-label">การลงทะเบียนเรียน</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon orange">💰</div>
+            <div>
+                <div class="admin-stat-number">฿@Model.TotalRevenue.ToString("N0")</div>
+                <div class="admin-stat-label">ยอดขายคอร์สทั้งหมด</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-7">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="fw-bold mb-0">🧾 รายการสั่งซื้อล่าสุด</h5>
+                <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-secondary">ดูทั้งหมด</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>เลขที่คำสั่งซื้อ</th>
+                            <th>ผู้เรียน</th>
+                            <th>คอร์ส</th>
+                            <th>ยอดเงิน</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.RecentOrders.Any())
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีคำสั่งซื้อ</td></tr>
+                        }
+                        @foreach (var order in Model.RecentOrders)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="fw-bold text-decoration-none text-dark">
+                                        @order.OrderNumber
+                                    </a>
+                                </td>
+                                <td>@(order.User?.FullName ?? order.User?.Email ?? "N/A")</td>
+                                <td><span class="text-truncate d-inline-block" style="max-width: 180px;">@order.Course?.Title</span></td>
+                                <td class="fw-bold text-warning-emphasis">฿@order.Amount.ToString("N0")</td>
+                                <td>
+                                    @if (order.Status == OrderStatus.Completed)
+                                    {
+                                        <span class="badge bg-success">ชำระแล้ว</span>
+                                    }
+                                    else if (order.Status == OrderStatus.Pending)
+                                    {
+                                        <span class="badge bg-warning text-dark">รอชำระ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">ยกเลิก</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Courses -->
+    <div class="col-lg-5">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="fw-bold mb-0">🔥 คอร์สยอดนิยม</h5>
+                <a asp-controller="Courses" asp-action="Index" class="btn btn-sm btn-outline-secondary">จัดการคอร์ส</a>
+            </div>
+            <div class="p-3">
+                @foreach (var course in Model.PopularCourses)
+                {
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded mb-2 hover-bg">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="@(string.IsNullOrEmpty(course.ThumbnailUrl) ? "https://placehold.co/100x70?text=Course" : course.ThumbnailUrl)"
+                                 class="rounded" style="width: 50px; height: 38px; object-fit: cover;" alt="thumb" />
+                            <div>
+                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id" class="text-decoration-none text-dark fw-bold small d-block">
+                                    @course.Title
+                                </a>
+                                <span class="badge @(course.IsFree ? "bg-success" : "bg-warning text-dark")" style="font-size: 0.7rem;">
+                                    @(course.IsFree ? "FREE" : "฿" + course.Price.ToString("N0"))
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark border">
+                                👥 @course.Enrollments.Count คน
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

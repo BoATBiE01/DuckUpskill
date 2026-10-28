@@ -1,0 +1,147 @@
+@model IEnumerable<DuckUpskill.Models.Course>
+@{
+    ViewData["Title"] = "จัดการคอร์สเรียน";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1">📚 จัดการคอร์สเรียน (Courses Management)</h2>
+        <p class="text-muted mb-0">เพิ่ม แก้ไข ลบ และจัดการบทเรียนในระบบ DuckUpskill</p>
+    </div>
+    <a asp-action="Create" class="btn btn-duck-primary fw-semibold">
+        ➕ เพิ่มคอร์สใหม่
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="admin-card mb-4 p-3">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="ค้นหาชื่อคอร์ส หรือ ผู้สอน..." />
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-select">
+                <option value="">ทุกหมวดหมู่</option>
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (string cat in ViewBag.Categories)
+                    {
+                        <!option value="@cat" @(ViewBag.Category == cat ? "selected" : "")>@cat</!option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="filter" class="form-select">
+                <option value="">ทุกราคา</option>
+                <!option value="free" @(ViewBag.Filter == "free" ? "selected" : "")>ฟรีเท่านั้น</!option>
+                <!option value="paid" @(ViewBag.Filter == "paid" ? "selected" : "")>เสียเงินเท่านั้น</!option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-dark w-100">ค้นหา</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">ล้าง</a>
+        </div>
+    </form>
+</div>
+
+<!-- Courses Table -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">รูป</th>
+                    <th>ชื่อคอร์สเรียน</th>
+                    <th>หมวดหมู่</th>
+                    <th>ราคา</th>
+                    <th>บทเรียน</th>
+                    <th>ผู้เรียน</th>
+                    <th>สถานะ</th>
+                    <th class="text-end" style="width: 220px;">การจัดการ (CRUD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            ไม่พบคอร์สเรียนที่ตรงกับเงื่อนไขการค้นหา
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(item.ThumbnailUrl) ? "https://placehold.co/100x70?text=No+Img" : item.ThumbnailUrl)"
+                                 class="rounded" style="width: 70px; height: 46px; object-fit: cover;" alt="thumb" />
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="fw-bold text-dark text-decoration-none d-block">
+                                @item.Title
+                            </a>
+                            <small class="text-muted">ผู้สอน: @item.InstructorName | ระดับ: @item.Level</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.Category</span>
+                        </td>
+                        <td>
+                            @if (item.IsFree)
+                            {
+                                <span class="badge bg-success">ฟรี (Free)</span>
+                            }
+                            else
+                            {
+                                <div class="fw-bold text-warning-emphasis">
+                                    ฿@item.Price.ToString("N0")
+                                    @if (item.OriginalPrice.HasValue)
+                                    {
+                                        <small class="text-muted text-decoration-line-through">฿@item.OriginalPrice.Value.ToString("N0")</small>
+                                    }
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <a asp-controller="Lessons" asp-action="Index" asp-route-courseId="@item.Id" class="badge bg-primary text-decoration-none">
+                                📝 @item.Lessons.Count บท
+                            </a>
+                        </td>
+                        <td>
+                            <span class="fw-semibold">@item.Enrollments.Count</span> คน
+                        </td>
+                        <td>
+                            @if (item.IsFeatured)
+                            {
+                                <span class="badge bg-warning text-dark">⭐ แนะนำ</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">ปกติ</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-controller="Lessons" asp-action="Index" asp-route-courseId="@item.Id" class="btn btn-outline-primary" title="จัดการบทเรียน">
+                                    บทเรียน
+                                </a>
+                                <a asp-controller="Assessments" asp-action="Index" asp-route-courseId="@item.Id" class="btn btn-outline-success" title="จัดการ Pre-test / Post-test">
+                                    ข้อสอบ
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary" title="ดูรายละเอียด">
+                                    ดู
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning text-dark" title="แก้ไข">
+                                    แก้ไข
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="ลบ">
+                                    ลบ
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

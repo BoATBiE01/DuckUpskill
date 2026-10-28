@@ -1,0 +1,28 @@
+@model DuckUpskill.Models.Order
+@{
+    ViewData["Title"] = "ยืนยันการลบคำสั่งซื้อ";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปรายการสั่งซื้อ</a>
+    <h2 class="fw-bold text-danger mt-2">🗑️ ยืนยันการลบคำสั่งซื้อ</h2>
+</div>
+
+<div class="admin-card p-4">
+    <p>คุณต้องการลบรายการคำสั่งซื้อนี้จริงหรือไม่?</p>
+    <div class="alert alert-warning">
+        <strong>เลขที่: @Model.OrderNumber</strong><br />
+        คอร์ส: @Model.Course?.Title<br />
+        ผู้เรียน: @(Model.User?.FullName ?? Model.User?.Email)<br />
+        ยอดเงิน: ฿@Model.Amount.ToString("N0")
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a>
+            <button type="submit" class="btn btn-danger fw-bold px-4">ยืนยันการลบ</button>
+        </div>
+    </form>
+</div>

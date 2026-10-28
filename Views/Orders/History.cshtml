@@ -1,0 +1,72 @@
+@model IEnumerable<DuckUpskill.Models.Order>
+@{
+    ViewData["Title"] = "ประวัติการสั่งซื้อ";
+}
+
+<div class="py-4 bg-white border-bottom mb-4">
+    <div class="container">
+        <h1 class="fw-bold mb-0">🧾 ประวัติการสั่งซื้อ (Order History)</h1>
+        <p class="text-muted mb-0">ดูรายการคอร์สและใบเสร็จคำสั่งซื้อของคุณทั้งหมด</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">เลขที่คำสั่งซื้อ</th>
+                        <th>คอร์สเรียน</th>
+                        <th>ยอดเงิน</th>
+                        <th>วิธีการชำระ</th>
+                        <th>สถานะ</th>
+                        <th>วันที่</th>
+                        <th class="text-end pe-4">ห้องเรียน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                ยังไม่มีประวัติการสั่งซื้อ
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold">@order.OrderNumber</td>
+                            <td>
+                                <div class="fw-semibold">@order.Course?.Title</div>
+                                <small class="text-muted">ผู้สอน: @order.Course?.InstructorName</small>
+                            </td>
+                            <td class="fw-bold text-warning-emphasis">฿@order.Amount.ToString("N0")</td>
+                            <td><span class="badge bg-light text-dark border">@order.PaymentMethod</span></td>
+                            <td>
+                                @if (order.Status == OrderStatus.Completed)
+                                {
+                                    <span class="badge bg-success">ชำระแล้ว</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@order.Status</span>
+                                }
+                            </td>
+                            <td class="small text-muted">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-end pe-4">
+                                @if (order.Course != null)
+                                {
+                                    <a asp-controller="Courses" asp-action="Learn" asp-route-id="@order.Course.Slug" class="btn btn-sm btn-duck-primary fw-semibold">
+                                        เข้าเรียน →
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

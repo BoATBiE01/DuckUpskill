@@ -1,0 +1,43 @@
+@model DuckUpskill.Models.Order
+@{
+    ViewData["Title"] = "แก้ไขคำสั่งซื้อ: " + Model.OrderNumber;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปรายการสั่งซื้อ</a>
+    <h2 class="fw-bold mt-2">✏️ ปรับสถานะคำสั่งซื้อ: @Model.OrderNumber</h2>
+</div>
+
+<div class="admin-card p-4">
+    <div class="alert alert-light border mb-4">
+        <strong>คอร์ส:</strong> @Model.Course?.Title |
+        <strong>ผู้เรียน:</strong> @(Model.User?.FullName ?? Model.User?.Email) |
+        <strong>ยอดเงิน:</strong> ฿@Model.Amount.ToString("N0")
+    </div>
+
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">สถานะคำสั่งซื้อ</label>
+                <select name="status" class="form-select">
+                    <!option value="Completed" @(Model.Status == OrderStatus.Completed ? "selected" : "")>ชำระเงินเรียบร้อย (Completed)</!option>
+                    <!option value="Pending" @(Model.Status == OrderStatus.Pending ? "selected" : "")>รอชำระเงิน (Pending)</!option>
+                    <!option value="Cancelled" @(Model.Status == OrderStatus.Cancelled ? "selected" : "")>ยกเลิก (Cancelled)</!option>
+                </select>
+                <small class="text-muted">หากเลือกสถานะ 'ชำระเงินเรียบร้อย' ระบบจะปลดล็อกสิทธิ์เข้าเรียนให้สมาชิกโดยอัตโนมัติ</small>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">รหัสอ้างอิงสลิป / บันทึกเพิ่มเติม</label>
+                <input type="text" name="slipReference" value="@Model.SlipReference" class="form-control" />
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between pt-3 border-top">
+            <a asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a>
+            <button type="submit" class="btn btn-duck-primary fw-bold px-4">💾 บันทึกการเปลี่ยนแปลง</button>
+        </div>
+    </form>
+</div>

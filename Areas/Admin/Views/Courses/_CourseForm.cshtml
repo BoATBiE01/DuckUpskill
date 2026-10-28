@@ -1,0 +1,108 @@
+@model DuckUpskill.Models.Course
+@{
+    var isEdit = (bool?)ViewData["IsEdit"] ?? false;
+    var actionName = isEdit ? "Edit" : "Create";
+}
+
+<form asp-action="@actionName" method="post" class="admin-card p-4">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+    @if (isEdit)
+    {
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CreatedAt" />
+    }
+
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label asp-for="Title" class="form-label fw-semibold"></label>
+            <input asp-for="Title" class="form-control" placeholder="เช่น เริ่มต้นเขียนเว็บด้วย ASP.NET Core MVC" />
+            <span asp-validation-for="Title" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Slug" class="form-label fw-semibold">Slug (เว้นว่างให้ระบบสร้าง)</label>
+            <input asp-for="Slug" class="form-control" placeholder="เว้นว่างเพื่อสร้างจากชื่อคอร์ส" />
+            <span asp-validation-for="Slug" class="text-danger small"></span>
+        </div>
+        <div class="col-12">
+            <label asp-for="ShortDescription" class="form-label fw-semibold"></label>
+            <textarea asp-for="ShortDescription" rows="2" class="form-control" placeholder="คำอธิบายสั้น ๆ สำหรับหน้าแสดงรายการคอร์ส"></textarea>
+            <span asp-validation-for="ShortDescription" class="text-danger small"></span>
+        </div>
+        <div class="col-12">
+            <label asp-for="Description" class="form-label fw-semibold"></label>
+            <textarea asp-for="Description" rows="5" class="form-control" placeholder="รายละเอียดเนื้อหาคอร์ส"></textarea>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+        <div class="col-md-8">
+            <label asp-for="ThumbnailUrl" class="form-label fw-semibold">ลิงก์รูปภาพปกคอร์ส</label>
+            <input asp-for="ThumbnailUrl" class="form-control" placeholder="https://..." />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Category" class="form-label fw-semibold"></label>
+            <input asp-for="Category" class="form-control" placeholder="Web Development" />
+            <span asp-validation-for="Category" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Level" class="form-label fw-semibold"></label>
+            <select asp-for="Level" asp-items="Html.GetEnumSelectList<CourseLevel>()" class="form-select"></select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Price" class="form-label fw-semibold">ราคา (บาท)</label>
+            <input asp-for="Price" class="form-control" type="number" min="0" step="0.01" />
+            <span asp-validation-for="Price" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="OriginalPrice" class="form-label fw-semibold">ราคาเต็ม (ถ้ามี)</label>
+            <input asp-for="OriginalPrice" class="form-control" type="number" min="0" step="0.01" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="InstructorName" class="form-label fw-semibold"></label>
+            <input asp-for="InstructorName" class="form-control" />
+            <span asp-validation-for="InstructorName" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="InstructorTitle" class="form-label fw-semibold"></label>
+            <input asp-for="InstructorTitle" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="InstructorAvatarUrl" class="form-label fw-semibold">รูปผู้สอน (URL)</label>
+            <input asp-for="InstructorAvatarUrl" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="DurationHours" class="form-label fw-semibold">ระยะเวลา (ชั่วโมง)</label>
+            <input asp-for="DurationHours" class="form-control" type="number" min="0" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Rating" class="form-label fw-semibold">คะแนนรีวิว (เริ่มต้น)</label>
+            <input asp-for="Rating" class="form-control" type="number" min="0" max="5" step="0.01" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ReviewCount" class="form-label fw-semibold">จำนวนรีวิว</label>
+            <input asp-for="ReviewCount" class="form-control" type="number" min="0" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="CertificatePassingScore" class="form-label fw-semibold">คะแนนผ่าน Post-test เพื่อรับ Certificate (%)</label>
+            <input asp-for="CertificatePassingScore" class="form-control" type="number" min="1" max="100" />
+            <span asp-validation-for="CertificatePassingScore" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6">
+            <div class="form-check form-switch mt-4">
+                <input asp-for="IsFree" class="form-check-input" />
+                <label asp-for="IsFree" class="form-check-label fw-semibold">คอร์สฟรี</label>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-check form-switch mt-4">
+                <input asp-for="IsFeatured" class="form-check-input" />
+                <label asp-for="IsFeatured" class="form-check-label fw-semibold">แสดงเป็นคอร์สแนะนำหน้าแรก</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+        <a asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a>
+        <button type="submit" class="btn btn-duck-primary px-4 fw-bold">@(isEdit ? "💾 บันทึกการแก้ไข" : "➕ สร้างคอร์สเรียน")</button>
+    </div>
+</form>
