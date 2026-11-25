@@ -22,6 +22,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AssessmentAttempt> AssessmentAttempts { get; set; } = null!;
     public DbSet<AssessmentAnswer> AssessmentAnswers { get; set; } = null!;
     public DbSet<CourseCertificate> CourseCertificates { get; set; } = null!;
+    public DbSet<SupportTicket> SupportTickets { get; set; } = null!;
+    public DbSet<SupportMessage> SupportMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -138,5 +140,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(u => u.Orders)
             .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Support Tickets & Messages
+        builder.Entity<SupportTicket>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.SupportTickets)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<SupportMessage>()
+            .HasOne(m => m.Ticket)
+            .WithMany(t => t.Messages)
+            .HasForeignKey(m => m.TicketId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<SupportMessage>()
+            .HasOne(m => m.SenderUser)
+            .WithMany()
+            .HasForeignKey(m => m.SenderUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

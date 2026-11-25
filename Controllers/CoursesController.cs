@@ -74,6 +74,10 @@ public class CoursesController : Controller
                 .Select(lc => lc.LessonId)
                 .ToListAsync();
 
+        var hasPreTest = await _context.AssessmentQuestions.AnyAsync(q => q.CourseId == course.Id && q.Type == AssessmentType.PreTest);
+        var hasTakenPreTest = user != null && await _context.AssessmentAttempts.AnyAsync(a => a.UserId == user.Id && a.CourseId == course.Id && a.Type == AssessmentType.PreTest);
+        var hasPendingPreTest = isEnrolled && hasPreTest && !hasTakenPreTest;
+
         var model = new CourseDetailsViewModel
         {
             Course = course,
@@ -82,7 +86,8 @@ public class CoursesController : Controller
             IsAdmin = User.IsInRole("Admin"),
             EnrolledCount = await _context.Enrollments.CountAsync(e => e.CourseId == course.Id),
             CompletedCount = completedLessonIds.Count,
-            ProgressPercent = course.Lessons.Count == 0 ? 0 : (int)Math.Round(completedLessonIds.Count * 100.0 / course.Lessons.Count)
+            ProgressPercent = course.Lessons.Count == 0 ? 0 : (int)Math.Round(completedLessonIds.Count * 100.0 / course.Lessons.Count),
+            HasPendingPreTest = hasPendingPreTest
         };
 
         return View(model);
@@ -115,7 +120,15 @@ public class CoursesController : Controller
         {
             _context.Enrollments.Add(new Enrollment { UserId = user.Id, CourseId = courseId });
             await _context.SaveChangesAsync();
-            TempData["Success"] = "สมัครเรียนสำเร็จแล้ว! พร้อมเริ่มอัปสกิลไปด้วยกัน 🦆";
+            TempData["Success"] = "สมัครเรียนสำเร็จแล้ว! เริ่มต้นด้วยการทำแบบทดสอบก่อนเรียน (Pre-test) กันเลย 🦆";
+        }
+
+        var courseHasPreTest = await _context.AssessmentQuestions.AnyAsync(q => q.CourseId == course.Id && q.Type == AssessmentType.PreTest);
+        var userTookPreTest = await _context.AssessmentAttempts.AnyAsync(a => a.UserId == user.Id && a.CourseId == course.Id && a.Type == AssessmentType.PreTest);
+
+        if (courseHasPreTest && !userTookPreTest)
+        {
+            return RedirectToAction("Take", "Assessments", new { courseId = course.Id, type = AssessmentType.PreTest });
         }
 
         return RedirectToAction("Learn", new { id = course.Slug });
@@ -143,6 +156,18 @@ public class CoursesController : Controller
         {
             TempData["Error"] = "กรุณาสมัครเรียนก่อนเข้าสู่บทเรียน";
             return RedirectToAction("Details", new { id });
+        }
+
+        // If user enters course without picking a specific lesson, guide them to Pre-test first if not taken yet
+        if (!lessonId.HasValue)
+        {
+            var courseHasPreTest = await _context.AssessmentQuestions.AnyAsync(q => q.CourseId == course.Id && q.Type == AssessmentType.PreTest);
+            var userTookPreTest = await _context.AssessmentAttempts.AnyAsync(a => a.UserId == user.Id && a.CourseId == course.Id && a.Type == AssessmentType.PreTest);
+
+            if (courseHasPreTest && !userTookPreTest)
+            {
+                return RedirectToAction("Take", "Assessments", new { courseId = course.Id, type = AssessmentType.PreTest });
+            }
         }
 
         var lessons = course.Lessons.OrderBy(l => l.OrderNumber).ToList();

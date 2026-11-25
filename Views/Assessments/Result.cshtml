@@ -37,6 +37,12 @@
         }
 
         <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+            @if (isPreTest)
+            {
+                <a asp-controller="Courses" asp-action="Learn" asp-route-id="@Model.Course.Slug" class="btn btn-duck-primary fw-bold">
+                    ▶️ เริ่มเข้าสู่บทเรียนทันที →
+                </a>
+            }
             @if (Model.Certificate != null)
             {
                 <a asp-action="Certificate" asp-route-courseId="@Model.Course.Id" class="btn btn-duck-primary fw-bold">🏅 ดู Certificate</a>

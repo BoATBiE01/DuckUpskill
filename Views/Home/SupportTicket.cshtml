@@ -1,0 +1,152 @@
+@model DuckUpskill.ViewModels.SupportTicketDetailViewModel
+@{
+    var ticket = Model.Ticket;
+    ViewData["Title"] = "การสนทนา: #" + ticket.Id + " - " + ticket.Topic;
+}
+
+<div class="py-4 bg-white border-bottom mb-4">
+    <div class="container">
+        <a asp-action="Support" class="text-decoration-none text-muted small d-inline-block mb-2">← กลับไปศูนย์ช่วยเหลือ</a>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-light text-dark border">Ticket #@ticket.Id</span>
+                    @if (ticket.Status == SupportTicketStatus.Pending)
+                    {
+                        <span class="badge bg-warning text-dark">⏳ รอแอดมินตอบกลับ</span>
+                    }
+                    else if (ticket.Status == SupportTicketStatus.Replied)
+                    {
+                        <span class="badge bg-success">✓ แอดมินตอบกลับแล้ว</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">⚪ ปิดการสนทนาแล้ว</span>
+                    }
+                </div>
+                <h1 class="h3 fw-bold mb-1 text-dark">@ticket.Topic</h1>
+                <small class="text-muted">
+                    ผู้ติดต่อ: <strong>@ticket.Name</strong> (@ticket.Email) · ส่งเมื่อ @ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </small>
+            </div>
+
+            @if (ticket.Status != SupportTicketStatus.Closed)
+            {
+                <form asp-action="CloseSupportTicket" method="post" onsubmit="return confirm('ยืนยันปิดการสนทนาข้อความนี้หรือไม่?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ticketId" value="@ticket.Id" />
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        ✓ ปิดการสนทนานี้ (ได้คำตอบแล้ว)
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5" style="max-width: 900px;">
+    <!-- Chat conversation card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-light py-3 border-bottom d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">💬 ประวัติการพูดคุยโต้ตอบ (@ticket.Messages.Count ข้อความ)</span>
+            <small class="text-muted">อัปเดตล่าสุด: @ticket.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+        </div>
+
+        <div class="card-body p-4 p-md-4 user-chat-body" style="background-color: #FAFAFA;">
+            <div class="chat-thread-container" id="userChatThread">
+                @foreach (var msg in ticket.Messages)
+                {
+                    if (msg.IsAdmin)
+                    {
+                        <!-- Admin reply bubble (Left side) -->
+                        <div class="chat-msg-row mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-danger">👑 Duck Support (Admin)</span>
+                                <span class="small text-muted">@msg.SentAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="chat-bubble chat-bubble-admin-view">
+                                <div style="white-space: pre-line;">@msg.Message</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- User message bubble (Right side) -->
+                        <div class="chat-msg-row user-row mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-1 justify-content-end">
+                                <strong class="small text-dark">@msg.SenderName (คุณ)</strong>
+                                <span class="small text-muted">@msg.SentAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="chat-bubble chat-bubble-user-view">
+                                <div style="white-space: pre-line;">@msg.Message</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Chat input footer -->
+        <div class="card-footer bg-white p-3 p-md-4 border-top">
+            @if (ticket.Status == SupportTicketStatus.Closed)
+            {
+                <div class="alert alert-secondary mb-0 text-center">
+                    การสนทนานี้ถูกปิดแล้ว หากคุณมีคำถามหรือข้อสงสัยใหม่
+                    <a asp-action="Support" class="fw-bold text-dark text-decoration-none">คลิกที่นี่เพื่อเปิดคำถามใหม่</a>
+                </div>
+            }
+            else
+            {
+                <form asp-action="ReplySupportTicket" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ticketId" value="@ticket.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">พิมพ์ข้อความตอบกลับแอดมิน:</label>
+                        <textarea name="replyMessage" rows="3" class="form-control" placeholder="พิมพ์ข้อความของคุณที่นี่เพื่อพูดคุยต่อกับแอดมิน..." required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">แอดมินจะเห็นข้อความของคุณในหน้า Dashboard ทันที</small>
+                        <button type="submit" class="btn btn-duck-primary fw-bold px-4">
+                            💬 ส่งข้อความตอบกลับ
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.user-chat-body {
+    min-height: 250px;
+}
+.chat-msg-row {
+    display: flex;
+    flex-direction: column;
+}
+.chat-msg-row.user-row {
+    align-items: flex-end;
+}
+.chat-bubble-admin-view {
+    background: linear-gradient(135deg, #FFF9E6, #FFF3E0);
+    border: 1px solid #FFE0B2;
+    border-radius: 4px 16px 16px 16px;
+    padding: 14px 18px;
+    max-width: 85%;
+    color: #78350F;
+    box-shadow: 0 2px 6px rgba(255, 106, 0, 0.08);
+    font-size: 0.96rem;
+    line-height: 1.6;
+}
+.chat-bubble-user-view {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px 4px 16px 16px;
+    padding: 14px 18px;
+    max-width: 85%;
+    color: #1F2937;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    font-size: 0.96rem;
+    line-height: 1.6;
+}
+</style>

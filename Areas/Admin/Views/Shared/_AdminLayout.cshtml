@@ -25,6 +25,7 @@
                 <a asp-area="Admin" asp-controller="Courses" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Courses" ? "active" : "")"><span>▣</span> จัดการคอร์ส</a>
                 <a asp-area="Admin" asp-controller="Members" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Members" ? "active" : "")"><span>♙</span> จัดการสมาชิก</a>
                 <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")"><span>▤</span> คำสั่งซื้อ</a>
+                <a asp-area="Admin" asp-controller="Support" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Support" ? "active" : "")"><span>💬</span> ศูนย์ช่วยเหลือ & แชต</a>
             </nav>
             <div class="admin-sidebar-bottom">
                 <a asp-area="" asp-controller="Home" asp-action="Index"><span>↗</span> ไปหน้าเว็บไซต์</a>
@@ -62,6 +63,7 @@
         </main>
     </div>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

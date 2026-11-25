@@ -11,7 +11,8 @@
 - หน้า Profile พร้อมอัปโหลดรูปและลบบัญชีสมาชิก
 - Admin Dashboard
 - CRUD คอร์ส บทเรียน สมาชิก คำสั่งซื้อ และข้อสอบ
-- หน้า Support สำหรับช่องทางติดต่อ LINE, Facebook, Instagram และอีเมล
+- หน้า Support และระบบแชตสนทนาโต้ตอบแบบเรียลไทม์ระหว่างผู้เรียนกับแอดมิน พร้อมช่องทาง Social (LINE, Facebook, Instagram)
+- Admin จัดการข้อความช่วยเหลือ ตอบกลับผู้เรียน และเปลี่ยนสถานะเคสคำถามจาก Dashboard ได้โดยตรง
 
 ## Tech Stack
 
@@ -37,14 +38,13 @@ Server=localhost\SQLEXPRESS;Database=DuckUpskillDb;Trusted_Connection=True;Trust
 
 เปิดหน้าเว็บจาก URL ที่แสดงใน Terminal หรือ Visual Studio
 
-## บัญชี Demo สำหรับเครื่องทดสอบ
-
-> เปลี่ยนรหัสผ่านก่อน Deploy จริง และห้ามใช้รหัสผ่าน Demo ใน Production
+## บัญชีผู้ดูแลระบบเริ่มต้น (Default Administrator)
 
 | Role | Email | Password |
 |---|---|---|
 | Admin | `admin@duckupskill.com` | `Admin@Duck123!` |
-| Member | `student@duckupskill.com` | `Student@Duck123!` |
+
+*หมายเหตุ: สำหรับผู้เรียน (Member) สามารถกดสมัครสมาชิกใหม่ได้ทันทีผ่านหน้าเว็บ `/Account/Register`*
 
 ## เตรียม Deploy บน Azure
 

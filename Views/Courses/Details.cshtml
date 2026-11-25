@@ -65,9 +65,18 @@
                         <div class="d-grid gap-2 mb-3">
                             @if (Model.IsEnrolled)
                             {
-                                <a asp-action="Learn" asp-route-id="@course.Slug" class="btn btn-lg btn-success fw-bold">
-                                    ▶️ เข้าสู่ห้องเรียน (กำลังเรียนอยู่)
-                                </a>
+                                @if (Model.HasPendingPreTest)
+                                {
+                                    <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@course.Id" asp-route-type="PreTest" class="btn btn-lg btn-duck-primary fw-bold">
+                                        📝 เริ่มทำแบบทดสอบก่อนเรียน (Pre-test)
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-action="Learn" asp-route-id="@course.Slug" class="btn btn-lg btn-success fw-bold">
+                                        ▶️ เข้าสู่ห้องเรียน (กำลังเรียนอยู่)
+                                    </a>
+                                }
                                 @if (Model.ProgressPercent > 0)
                                 {
                                     <div class="small text-muted text-center">

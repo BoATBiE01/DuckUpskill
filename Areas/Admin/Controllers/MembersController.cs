@@ -137,6 +137,27 @@ public class MembersController : Controller
                 return RedirectToAction(nameof(Index));
             }
 
+            // Cleanup related records before deleting
+            var attempts = await _context.AssessmentAttempts.Where(a => a.UserId == user.Id).ToListAsync();
+            var attemptIds = attempts.Select(a => a.Id).ToList();
+            if (attemptIds.Count > 0)
+            {
+                var answers = await _context.AssessmentAnswers.Where(a => attemptIds.Contains(a.AttemptId)).ToListAsync();
+                _context.AssessmentAnswers.RemoveRange(answers);
+                _context.AssessmentAttempts.RemoveRange(attempts);
+            }
+            _context.CourseCertificates.RemoveRange(await _context.CourseCertificates.Where(c => c.UserId == user.Id).ToListAsync());
+            _context.LessonVideoWatches.RemoveRange(await _context.LessonVideoWatches.Where(w => w.UserId == user.Id).ToListAsync());
+            _context.LessonCompletions.RemoveRange(await _context.LessonCompletions.Where(c => c.UserId == user.Id).ToListAsync());
+            _context.Enrollments.RemoveRange(await _context.Enrollments.Where(e => e.UserId == user.Id).ToListAsync());
+            _context.Orders.RemoveRange(await _context.Orders.Where(o => o.UserId == user.Id).ToListAsync());
+
+            var userTickets = await _context.SupportTickets.Where(t => t.UserId == user.Id).ToListAsync();
+            foreach (var t in userTickets) { t.UserId = null; }
+            var userMessages = await _context.SupportMessages.Where(m => m.SenderUserId == user.Id).ToListAsync();
+            foreach (var m in userMessages) { m.SenderUserId = null; }
+
+            await _context.SaveChangesAsync();
             await _userManager.DeleteAsync(user);
             TempData["Success"] = "ลบสมาชิกเรียบร้อยแล้ว";
         }

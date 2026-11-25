@@ -49,6 +49,17 @@ public class DashboardController : Controller
             .Take(5)
             .ToListAsync();
 
+        var pendingSupportTickets = await _context.SupportTickets
+            .CountAsync(t => t.Status == Models.SupportTicketStatus.Pending);
+
+        var recentSupportTickets = await _context.SupportTickets
+            .Include(t => t.Messages)
+            .Include(t => t.User)
+            .OrderBy(t => t.Status == Models.SupportTicketStatus.Pending ? 0 : 1)
+            .ThenByDescending(t => t.UpdatedAt)
+            .Take(5)
+            .ToListAsync();
+
         var viewModel = new AdminDashboardViewModel
         {
             TotalCourses = totalCourses,
@@ -59,7 +70,9 @@ public class DashboardController : Controller
             TotalRevenue = totalRevenue,
             RecentOrders = recentOrders,
             RecentEnrollments = recentEnrollments,
-            PopularCourses = popularCourses
+            PopularCourses = popularCourses,
+            PendingSupportTickets = pendingSupportTickets,
+            RecentSupportTickets = recentSupportTickets
         };
 
         return View(viewModel);

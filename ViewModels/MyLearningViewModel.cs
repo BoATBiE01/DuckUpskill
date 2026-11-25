@@ -17,6 +17,7 @@ public class EnrolledCourseItem
     public int ProgressPercent { get; set; }
     public Lesson? NextLesson { get; set; }
     public bool HasPreTest { get; set; }
+    public bool NeedsPreTest { get; set; }
     public bool IsCourseCompleted { get; set; }
     public CourseCertificate? Certificate { get; set; }
 }

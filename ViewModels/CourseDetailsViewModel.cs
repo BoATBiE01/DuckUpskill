@@ -11,4 +11,5 @@ public class CourseDetailsViewModel
     public int EnrolledCount { get; set; }
     public int CompletedCount { get; set; }
     public int ProgressPercent { get; set; }
+    public bool HasPendingPreTest { get; set; }
 }

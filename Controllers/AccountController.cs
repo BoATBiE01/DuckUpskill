@@ -310,6 +310,12 @@ public class AccountController : Controller
             _context.LessonCompletions.RemoveRange(await _context.LessonCompletions.Where(c => c.UserId == user.Id).ToListAsync());
             _context.Enrollments.RemoveRange(await _context.Enrollments.Where(e => e.UserId == user.Id).ToListAsync());
             _context.Orders.RemoveRange(await _context.Orders.Where(o => o.UserId == user.Id).ToListAsync());
+
+            var userTickets = await _context.SupportTickets.Where(t => t.UserId == user.Id).ToListAsync();
+            foreach (var t in userTickets) { t.UserId = null; }
+            var userMessages = await _context.SupportMessages.Where(m => m.SenderUserId == user.Id).ToListAsync();
+            foreach (var m in userMessages) { m.SenderUserId = null; }
+
             await _context.SaveChangesAsync();
 
             var result = await _userManager.DeleteAsync(user);

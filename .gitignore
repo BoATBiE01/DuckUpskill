@@ -10,6 +10,7 @@ verify-build/
 
 ## Local development
 appsettings.Development.json
+appsettings.Local.json
 *.usersecrets.json
 
 ## Runtime uploads and local logs

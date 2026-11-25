@@ -1,4 +1,34 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿// DuckUpskill Site JavaScript
 
-// Write your JavaScript code.
+// Reusable Password Visibility Toggle
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('click', function (e) {
+        const toggleBtn = e.target.closest('.toggle-password-btn');
+        if (!toggleBtn) return;
+
+        e.preventDefault();
+        const group = toggleBtn.closest('.input-group');
+        if (!group) return;
+
+        const input = group.querySelector('input');
+        if (!input) return;
+
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        const eyeOpen = toggleBtn.querySelector('.eye-open');
+        const eyeClosed = toggleBtn.querySelector('.eye-closed');
+
+        if (eyeOpen && eyeClosed) {
+            if (isPassword) {
+                eyeOpen.classList.add('d-none');
+                eyeClosed.classList.remove('d-none');
+            } else {
+                eyeOpen.classList.remove('d-none');
+                eyeClosed.classList.add('d-none');
+            }
+        }
+
+        input.focus();
+    });
+});

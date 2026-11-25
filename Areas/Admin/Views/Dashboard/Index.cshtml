@@ -17,7 +17,7 @@
 
 <!-- Stats Row -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6">
+    <div class="col-lg col-md-4 col-sm-6">
         <div class="admin-stat-card">
             <div class="admin-stat-icon yellow">📚</div>
             <div>
@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6">
+    <div class="col-lg col-md-4 col-sm-6">
         <div class="admin-stat-card">
             <div class="admin-stat-icon blue">👥</div>
             <div>
@@ -35,7 +35,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6">
+    <div class="col-lg col-md-4 col-sm-6">
         <div class="admin-stat-card">
             <div class="admin-stat-icon green">🎓</div>
             <div>
@@ -44,7 +44,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6">
+    <div class="col-lg col-md-6 col-sm-6">
         <div class="admin-stat-card">
             <div class="admin-stat-icon orange">💰</div>
             <div>
@@ -52,6 +52,17 @@
                 <div class="admin-stat-label">ยอดขายคอร์สทั้งหมด</div>
             </div>
         </div>
+    </div>
+    <div class="col-lg col-md-6 col-sm-12">
+        <a asp-controller="Support" asp-action="Index" class="text-decoration-none">
+            <div class="admin-stat-card border-warning">
+                <div class="admin-stat-icon @(Model.PendingSupportTickets > 0 ? "orange" : "yellow")">💬</div>
+                <div>
+                    <div class="admin-stat-number @(Model.PendingSupportTickets > 0 ? "text-danger" : "")">@Model.PendingSupportTickets</div>
+                    <div class="admin-stat-label">คำถามรอการตอบกลับ</div>
+                </div>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -143,6 +154,88 @@
                         </div>
                     </div>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Support Inquiries Row -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="fw-bold mb-0">💬 ข้อความและคำถามล่าสุดจากผู้ใช้งาน</h5>
+                    @if (Model.PendingSupportTickets > 0)
+                    {
+                        <span class="badge bg-danger">รอตอบ @Model.PendingSupportTickets รายการ</span>
+                    }
+                </div>
+                <a asp-controller="Support" asp-action="Index" class="btn btn-sm btn-outline-secondary">ดูทั้งหมดและแชต</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table admin-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>ผู้ติดต่อ</th>
+                            <th>หัวข้อคำถาม</th>
+                            <th>สถานะ</th>
+                            <th>ข้อความล่าสุด</th>
+                            <th>เวลา</th>
+                            <th class="text-end">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.RecentSupportTickets.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">ยังไม่มีข้อความสอบถามเข้ามา</td>
+                            </tr>
+                        }
+                        @foreach (var ticket in Model.RecentSupportTickets)
+                        {
+                            var lastMessage = ticket.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">@ticket.Name</div>
+                                    <small class="text-muted">@ticket.Email</small>
+                                </td>
+                                <td>
+                                    <a asp-controller="Support" asp-action="Details" asp-route-id="@ticket.Id" class="fw-semibold text-decoration-none text-dark d-block">
+                                        @ticket.Topic
+                                    </a>
+                                </td>
+                                <td>
+                                    @if (ticket.Status == SupportTicketStatus.Pending)
+                                    {
+                                        <span class="badge bg-warning text-dark">⏳ รอแอดมินตอบ</span>
+                                    }
+                                    else if (ticket.Status == SupportTicketStatus.Replied)
+                                    {
+                                        <span class="badge bg-success">✓ ตอบกลับแล้ว</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">ปิดการสนทนา</span>
+                                    }
+                                </td>
+                                <td style="max-width: 280px;">
+                                    <span class="text-truncate d-inline-block text-muted small" style="max-width: 280px;">
+                                        @(lastMessage?.Message ?? "-")
+                                    </span>
+                                </td>
+                                <td class="small text-muted">
+                                    @ticket.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-end">
+                                    <a asp-controller="Support" asp-action="Details" asp-route-id="@ticket.Id" class="btn btn-sm btn-duck-primary fw-semibold">
+                                        💬 เปิดแชต / ตอบกลับ
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

@@ -55,7 +55,9 @@ public class LearningController : Controller
 
             var nextLesson = lessons.FirstOrDefault(l => !completedSet.Contains(l.Id)) ?? lessons.FirstOrDefault();
             var completedCourse = total > 0 && completedCount == total;
-            var hasPreTest = await _context.AssessmentAttempts.AnyAsync(a => a.UserId == user.Id && a.CourseId == enrollment.CourseId && a.Type == AssessmentType.PreTest);
+            var courseHasPreTest = await _context.AssessmentQuestions.AnyAsync(q => q.CourseId == enrollment.CourseId && q.Type == AssessmentType.PreTest);
+            var userTookPreTest = await _context.AssessmentAttempts.AnyAsync(a => a.UserId == user.Id && a.CourseId == enrollment.CourseId && a.Type == AssessmentType.PreTest);
+            var needsPreTest = courseHasPreTest && !userTookPreTest;
             var certificate = completedCourse
                 ? await _context.CourseCertificates.FirstOrDefaultAsync(c => c.UserId == user.Id && c.CourseId == enrollment.CourseId)
                 : null;
@@ -68,7 +70,8 @@ public class LearningController : Controller
                 ProgressPercent = progress,
                 NextLesson = nextLesson,
                 IsCourseCompleted = completedCourse,
-                HasPreTest = hasPreTest,
+                HasPreTest = userTookPreTest,
+                NeedsPreTest = needsPreTest,
                 Certificate = certificate
             });
         }

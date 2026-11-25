@@ -1,6 +1,8 @@
 using DuckUpskill.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace DuckUpskill.Data;
 
@@ -24,16 +26,53 @@ public static class DbInitializer
             }
         }
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-        {
-            await SeedUserAsync(userManager, "admin@duckupskill.com", "Admin@Duck123!", "Duck Master (Administrator)", "Admin");
-            await SeedUserAsync(userManager, "student@duckupskill.com", "Student@Duck123!", "น้องเป็ด ขยันเรียน", "Member");
-            await SeedAssessmentQuestionsAsync(context);
-            await NormalizeGeneratedAssessmentChoicesAsync(context);
-            await RandomizeAssessmentOptionOrderAsync(context);
-        }
+        // Keep admin account
+        await SeedUserAsync(userManager, "admin@duckupskill.com", "Admin@Duck123!", "Duck Master (Administrator)", "Admin");
+
+        // Remove student demo account if present
+        await DeleteUserIfExistsAsync(context, userManager, "student@duckupskill.com");
+
+        // Seed & Update all 28 courses with curated YouTube video embeds, lesson content, and Unsplash images
+        await CourseContentSeeder.SeedOrUpdateContentAsync(context);
+
+        // Seed & Update authentic, curriculum-specific Pre-test & Post-test questions with realistic choices
+        await CourseAssessmentSeeder.SeedOrUpdateAssessmentsAsync(context);
+
+        // Seed initial sample support tickets if empty
+        await SeedSampleSupportTicketsAsync(context);
 
         Console.WriteLine("[DuckUpskill] ฐานข้อมูลและข้อมูลพื้นฐานพร้อมใช้งาน");
+    }
+
+    private static async Task DeleteUserIfExistsAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, string email)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null) return;
+
+        var attempts = await context.AssessmentAttempts.Where(a => a.UserId == user.Id).ToListAsync();
+        var attemptIds = attempts.Select(a => a.Id).ToList();
+        if (attemptIds.Count > 0)
+        {
+            var answers = await context.AssessmentAnswers.Where(a => attemptIds.Contains(a.AttemptId)).ToListAsync();
+            context.AssessmentAnswers.RemoveRange(answers);
+            context.AssessmentAttempts.RemoveRange(attempts);
+        }
+
+        context.CourseCertificates.RemoveRange(await context.CourseCertificates.Where(c => c.UserId == user.Id).ToListAsync());
+        context.LessonVideoWatches.RemoveRange(await context.LessonVideoWatches.Where(w => w.UserId == user.Id).ToListAsync());
+        context.LessonCompletions.RemoveRange(await context.LessonCompletions.Where(c => c.UserId == user.Id).ToListAsync());
+        context.Enrollments.RemoveRange(await context.Enrollments.Where(e => e.UserId == user.Id).ToListAsync());
+        context.Orders.RemoveRange(await context.Orders.Where(o => o.UserId == user.Id).ToListAsync());
+
+        var userTickets = await context.SupportTickets.Where(t => t.UserId == user.Id).ToListAsync();
+        foreach (var t in userTickets) { t.UserId = null; }
+        var userMessages = await context.SupportMessages.Where(m => m.SenderUserId == user.Id).ToListAsync();
+        foreach (var m in userMessages) { m.SenderUserId = null; }
+
+        await context.SaveChangesAsync();
+
+        await userManager.DeleteAsync(user);
+        Console.WriteLine($"[DuckUpskill] ลบบัญชีเดโม {email} เรียบร้อยแล้ว");
     }
 
     private static async Task SeedUserAsync(UserManager<ApplicationUser> userManager, string email, string password, string fullName, string role)
@@ -60,159 +99,6 @@ public static class DbInitializer
         {
             await userManager.AddToRoleAsync(user, role);
         }
-    }
-
-    private static async Task SeedAssessmentQuestionsAsync(ApplicationDbContext context)
-    {
-        var courseIds = await context.Courses.Select(c => c.Id).ToListAsync();
-        foreach (var courseId in courseIds)
-        {
-            var lessons = await context.Lessons.Where(l => l.CourseId == courseId).OrderBy(l => l.OrderNumber).ToListAsync();
-            if (lessons.Count == 0) continue;
-
-            foreach (var type in new[] { AssessmentType.PreTest, AssessmentType.PostTest })
-            {
-                if (await context.AssessmentQuestions.AnyAsync(q => q.CourseId == courseId && q.Type == type)) continue;
-
-                var questions = lessons.Take(5).Select((lesson, index) => new AssessmentQuestion
-                {
-                    CourseId = courseId,
-                    Type = type,
-                    OrderNumber = index + 1,
-                    Text = type == AssessmentType.PreTest
-                        ? $"[ก่อนเรียน] หัวข้อใดตรงกับบทเรียน “{CleanLessonTitle(lesson.Title)}”?"
-                        : $"[หลังเรียน] หัวข้อใดตรงกับบทเรียน “{CleanLessonTitle(lesson.Title)}”?",
-                    Options = new List<AssessmentOption>
-                    {
-                        new() { Text = CleanLessonTitle(lesson.Title), OrderNumber = 1, IsCorrect = true },
-                        new() { Text = "หัวข้อจากบทเรียนอื่น", OrderNumber = 2, IsCorrect = false },
-                        new() { Text = "เนื้อหาที่ไม่ได้กล่าวถึง", OrderNumber = 3, IsCorrect = false },
-                        new() { Text = "แนวคิดคนละหัวข้อ", OrderNumber = 4, IsCorrect = false }
-                    }
-                }).ToList();
-
-                await context.AssessmentQuestions.AddRangeAsync(questions);
-            }
-        }
-        await context.SaveChangesAsync();
-    }
-
-    private static async Task NormalizeGeneratedAssessmentChoicesAsync(ApplicationDbContext context)
-    {
-        // Normalize old generated questions too (older versions used different text prefixes).
-        // Leave administrator-authored questions untouched.
-        var questions = await context.AssessmentQuestions
-            .Where(q => q.Type == AssessmentType.PreTest || q.Type == AssessmentType.PostTest)
-            .Include(q => q.Options)
-            .OrderBy(q => q.CourseId)
-            .ThenBy(q => q.Type)
-            .ThenBy(q => q.OrderNumber)
-            .ToListAsync();
-
-        foreach (var group in questions
-            .Where(q => IsGeneratedAssessmentQuestion(q.Text))
-            .GroupBy(q => new { q.CourseId, q.Type }))
-        {
-            foreach (var question in group)
-            {
-                var options = question.Options.OrderBy(o => o.Id).ToList();
-                if (options.Count < 2 || options.Count(o => o.IsCorrect) != 1) continue;
-
-                // Randomize answer order on startup so generated questions do not always place the answer first.
-                var shuffledOptions = options.OrderBy(_ => Random.Shared.Next()).ToList();
-                for (var index = 0; index < shuffledOptions.Count; index++)
-                {
-                    shuffledOptions[index].OrderNumber = index + 1;
-                }
-            }
-        }
-
-        await context.SaveChangesAsync();
-    }
-
-    private static async Task RandomizeAssessmentOptionOrderAsync(ApplicationDbContext context)
-    {
-        var attempts = await context.AssessmentAttempts
-            .Select(a => new { a.UserId, a.CourseId, a.Type })
-            .Distinct()
-            .ToListAsync();
-        var taken = attempts.ToHashSet();
-
-        var groups = await context.AssessmentQuestions
-            .Include(q => q.Options)
-            .Where(q => q.Type == AssessmentType.PreTest || q.Type == AssessmentType.PostTest)
-            .ToListAsync();
-
-        foreach (var group in groups.GroupBy(q => new { q.CourseId, q.Type }))
-        {
-            var questions = group.OrderBy(q => q.OrderNumber).ToList();
-            var rng = Random.Shared;
-            var correctOrder = Enumerable.Range(0, questions.Count).ToList();
-            Shuffle(correctOrder, rng);
-
-            // Keep deterministic saved order, but randomize the right answer position per question once.
-            for (var index = 0; index < questions.Count; index++)
-            {
-                var question = questions[index];
-                if (!IsGeneratedAssessmentQuestion(question.Text)) continue;
-                var options = question.Options.OrderBy(o => o.OrderNumber).ToList();
-                if (options.Count < 2 || options.Count(o => o.IsCorrect) != 1) continue;
-
-                var correctOption = options.Single(o => o.IsCorrect);
-                var wrongOptions = options.Where(o => !o.IsCorrect).ToList();
-                var position = correctOrder[index] + 1;
-                correctOption.OrderNumber = position;
-                var next = 1;
-                foreach (var option in wrongOptions)
-                {
-                    while (next == position) next++;
-                    option.OrderNumber = next++;
-                }
-            }
-        }
-
-        await context.SaveChangesAsync();
-    }
-
-    private static void Shuffle<T>(IList<T> items, Random random)
-    {
-        for (var index = items.Count - 1; index > 0; index--)
-        {
-            var swapIndex = random.Next(index + 1);
-            (items[index], items[swapIndex]) = (items[swapIndex], items[index]);
-        }
-    }
-
-    private static bool IsGeneratedAssessmentQuestion(string text) =>
-        text.StartsWith("[ก่อนเรียน]", StringComparison.Ordinal) ||
-        text.StartsWith("[หลังเรียน]", StringComparison.Ordinal) ||
-        text.StartsWith("[ประเมินก่อนเรียน:", StringComparison.Ordinal) ||
-        text.StartsWith("[ทบทวนหลังเรียน:", StringComparison.Ordinal);
-
-    private static string CleanLessonTitle(string title)
-    {
-        var cleaned = System.Text.RegularExpressions.Regex.Replace(title.Trim(), @"^\d+\.\s*", "");
-        var colonIndex = cleaned.IndexOf(':');
-        return colonIndex >= 0 ? cleaned[(colonIndex + 1)..].Trim() : cleaned;
-    }
-
-    private static List<string> BuildDistractors(string topic, List<Lesson> lessons, int lessonIndex)
-    {
-        var choices = lessons
-            .Where((_, index) => index != lessonIndex)
-            .Select(lesson => CleanLessonTitle(lesson.Title))
-            .Where(title => !string.Equals(title, topic, StringComparison.OrdinalIgnoreCase))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var fallback = new[] { "หัวข้อที่ไม่ได้กล่าวถึงในบทเรียนนี้", "การประยุกต์ใช้เนื้อหาจากบทเรียนอื่น", "การทบทวนแนวคิดคนละหัวข้อ" };
-        foreach (var item in fallback)
-        {
-            if (choices.Count >= 3) break;
-            if (!choices.Contains(item, StringComparer.OrdinalIgnoreCase)) choices.Add(item);
-        }
-        while (choices.Count < 3) choices.Add($"ตัวเลือกที่ไม่เกี่ยวข้อง {choices.Count + 1}");
-        return choices.Take(3).ToList();
     }
 
     private static async Task EnsureExtraSchemaAsync(ApplicationDbContext context)
@@ -301,6 +187,92 @@ BEGIN
     );
     CREATE UNIQUE INDEX IX_CourseCertificates_UserId_CourseId ON dbo.CourseCertificates(UserId, CourseId);
     CREATE UNIQUE INDEX IX_CourseCertificates_CertificateNumber ON dbo.CourseCertificates(CertificateNumber);
+END;
+
+IF OBJECT_ID('dbo.SupportTickets', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.SupportTickets (
+        Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        UserId nvarchar(450) NULL,
+        Name nvarchar(100) NOT NULL,
+        Email nvarchar(256) NOT NULL,
+        Topic nvarchar(150) NOT NULL,
+        Status int NOT NULL CONSTRAINT DF_SupportTickets_Status DEFAULT 0,
+        CreatedAt datetime2 NOT NULL,
+        UpdatedAt datetime2 NOT NULL,
+        CONSTRAINT FK_SupportTickets_Users FOREIGN KEY (UserId) REFERENCES dbo.AspNetUsers(Id) ON DELETE SET NULL
+    );
+END;
+
+IF OBJECT_ID('dbo.SupportMessages', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.SupportMessages (
+        Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        TicketId int NOT NULL,
+        SenderUserId nvarchar(450) NULL,
+        SenderName nvarchar(100) NOT NULL,
+        IsAdmin bit NOT NULL CONSTRAINT DF_SupportMessages_IsAdmin DEFAULT 0,
+        Message nvarchar(max) NOT NULL,
+        SentAt datetime2 NOT NULL,
+        CONSTRAINT FK_SupportMessages_Tickets FOREIGN KEY (TicketId) REFERENCES dbo.SupportTickets(Id) ON DELETE CASCADE,
+        CONSTRAINT FK_SupportMessages_Users FOREIGN KEY (SenderUserId) REFERENCES dbo.AspNetUsers(Id) ON DELETE SET NULL
+    );
 END;");
+    }
+
+    private static async Task SeedSampleSupportTicketsAsync(ApplicationDbContext context)
+    {
+        if (await context.SupportTickets.AnyAsync()) return;
+
+        var sampleTicket = new SupportTicket
+        {
+            Name = "สมชาย ใจดี",
+            Email = "somchai@example.com",
+            Topic = "สอบถามเกี่ยวกับเนื้อหาและใบ Certificate คอร์ส ASP.NET Core",
+            Status = SupportTicketStatus.Replied,
+            CreatedAt = DateTime.UtcNow.AddHours(-5),
+            UpdatedAt = DateTime.UtcNow.AddHours(-1),
+            Messages = new List<SupportMessage>
+            {
+                new SupportMessage
+                {
+                    SenderName = "สมชาย ใจดี",
+                    IsAdmin = false,
+                    Message = "สวัสดีครับทีมงาน อยากทราบว่าหากเรียนคอร์ส ASP.NET Core จบแล้วต้องทำคะแนน Post-test ได้กี่เปอร์เซ็นต์ถึงจะได้ Certificate ครับ?",
+                    SentAt = DateTime.UtcNow.AddHours(-5)
+                },
+                new SupportMessage
+                {
+                    SenderName = "Duck Support (Admin)",
+                    IsAdmin = true,
+                    Message = "สวัสดีครับคุณสมชาย 🦆 สำหรับการรับ Certificate ผู้เรียนจำเป็นต้องเรียนบทเรียนให้ครบ 100% และทำแบบทดสอบ Post-test ให้ได้คะแนน 80% ขึ้นไปครับ หากมีข้อสงสัยเพิ่มเติมสอบถามได้เลยนะครับ!",
+                    SentAt = DateTime.UtcNow.AddHours(-1)
+                }
+            }
+        };
+
+        var pendingTicket = new SupportTicket
+        {
+            Name = "นฤมล สนใจเรียน",
+            Email = "narumon@example.com",
+            Topic = "สอบถามการออกใบกำกับภาษีสำหรับคอร์สพรีเมียม",
+            Status = SupportTicketStatus.Pending,
+            CreatedAt = DateTime.UtcNow.AddMinutes(-40),
+            UpdatedAt = DateTime.UtcNow.AddMinutes(-40),
+            Messages = new List<SupportMessage>
+            {
+                new SupportMessage
+                {
+                    SenderName = "นฤมล สนใจเรียน",
+                    IsAdmin = false,
+                    Message = "สวัสดีค่ะ สนใจลงทะเบียนคอร์ส Python และ Power BI ทางระบบสามารถขอใบเสร็จหรือใบกำกับภาษีในนามบริษัทได้ไหมคะ?",
+                    SentAt = DateTime.UtcNow.AddMinutes(-40)
+                }
+            }
+        };
+
+        context.SupportTickets.AddRange(sampleTicket, pendingTicket);
+        await context.SaveChangesAsync();
+        Console.WriteLine("[DuckUpskill] เพิ่มข้อมูลตัวอย่าง Support Tickets เริ่มต้นเรียบร้อย");
     }
 }

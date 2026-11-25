@@ -55,9 +55,9 @@
                             <div class="small text-muted mb-3">เรียนจบแล้ว @item.CompletedLessons / @item.TotalLessons บทเรียน</div>
                             <div class="course-footer">
                                 <span class="small text-muted">ลงทะเบียน @item.Enrollment.EnrolledAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
-                                @if (!item.HasPreTest)
+                                @if (item.NeedsPreTest)
                                 {
-                                    <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@course.Id" asp-route-type="PreTest" class="btn btn-sm btn-outline-primary fw-bold">ทำ Pre-test</a>
+                                    <a asp-controller="Assessments" asp-action="Take" asp-route-courseId="@course.Id" asp-route-type="PreTest" class="btn btn-sm btn-duck-primary fw-bold">📝 ทำ Pre-test ก่อนเรียน →</a>
                                 }
                                 else if (item.IsCourseCompleted && item.Certificate != null)
                                 {

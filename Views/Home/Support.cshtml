@@ -1,3 +1,4 @@
+@model DuckUpskill.ViewModels.SupportIndexViewModel
 @{
     ViewData["Title"] = "ศูนย์ช่วยเหลือและติดต่อเรา";
 }
@@ -8,12 +9,13 @@
         <span class="badge bg-warning text-dark px-3 py-2 mb-3">DUCKUPSKILL SUPPORT</span>
         <h1 class="display-5 fw-bold mb-3">มีคำถามหรืออยากให้ช่วยอะไรไหม?</h1>
         <p class="lead text-muted mx-auto mb-0" style="max-width: 680px;">
-            ติดต่อทีมงาน DuckUpskill ได้ผ่านช่องทางที่สะดวก เราพร้อมช่วยเหลือเรื่องคอร์ส การเข้าใช้งาน และปัญหาต่าง ๆ ครับ
+            ติดต่อทีมงาน DuckUpskill ได้ผ่านช่องทางที่สะดวก เราพร้อมช่วยเหลือเรื่องคอร์ส การเข้าใช้งาน และตอบกลับคำถามทุกข้อครับ
         </p>
     </div>
 </section>
 
 <div class="container py-5">
+    <!-- Social contact cards -->
     <div class="row g-4 mb-5">
         <div class="col-md-4">
             <a href="https://line.me/" target="_blank" rel="noopener noreferrer" class="support-channel support-line">
@@ -50,56 +52,118 @@
         </div>
     </div>
 
+    <!-- My Conversations / Tickets (if user is logged in and has tickets) -->
+    @if (Model.MyTickets.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden border-start border-warning border-4" id="my-tickets">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">💬 การสนทนาและคำถามของฉัน (@Model.MyTickets.Count เรื่อง)</h4>
+                    <small class="text-muted">คลิกเพื่อดูคำตอบจากแอดมิน หรือพิมพ์คุยโต้ตอบต่อได้ทันที</small>
+                </div>
+                <span class="badge bg-warning text-dark px-3 py-2">ประวัติของฉัน</span>
+            </div>
+            <div class="list-group list-group-flush">
+                @foreach (var ticket in Model.MyTickets)
+                {
+                    var lastMsg = ticket.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+                    <a asp-action="SupportTicket" asp-route-id="@ticket.Id" class="list-group-item list-group-item-action p-3 p-md-4 d-flex justify-content-between align-items-center gap-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="badge bg-light text-dark border">#@ticket.Id</span>
+                                <h6 class="fw-bold mb-0 text-dark">@ticket.Topic</h6>
+                                @if (ticket.Status == SupportTicketStatus.Pending)
+                                {
+                                    <span class="badge bg-warning text-dark">⏳ รอแอดมินตอบ</span>
+                                }
+                                else if (ticket.Status == SupportTicketStatus.Replied)
+                                {
+                                    <span class="badge bg-success">✓ แอดมินตอบแล้ว</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">⚪ ปิดการสนทนา</span>
+                                }
+                            </div>
+                            <p class="text-muted small mb-1 text-truncate" style="max-width: 650px;">
+                                <strong>@(lastMsg?.IsAdmin == true ? "👑 แอดมิน: " : "คุณ: ")</strong>
+                                @(lastMsg?.Message ?? "-")
+                            </p>
+                            <span class="small text-muted">อัปเดตล่าสุด: @ticket.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") · ทั้งหมด @ticket.Messages.Count ข้อความ</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="btn btn-sm btn-duck-secondary fw-semibold text-nowrap">
+                                💬 เปิดดูแชต →
+                            </span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Inquiry Form & Help Info -->
     <div class="row g-4 align-items-stretch">
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-4 p-md-5">
-                <h2 class="h4 fw-bold mb-1">ส่งคำถามถึงทีมงาน</h2>
-                <p class="text-muted mb-4">กรอกข้อมูลไว้ก่อน แล้วทีมงานจะติดต่อกลับตามช่องทางที่แจ้งไว้</p>
-                <form onsubmit="return submitSupportForm(event)">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fs-4">✉️</span>
+                    <h2 class="h4 fw-bold mb-0">ส่งคำถามหรือปัญหาถึงทีมงาน</h2>
+                </div>
+                <p class="text-muted mb-4">เมื่อส่งแล้ว แอดมินจะได้รับข้อความและสามารถตอบกลับพูดคุยกับคุณได้ในระบบทันที</p>
+
+                <form asp-action="Support" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="supportName">ชื่อของคุณ</label>
-                            <input id="supportName" class="form-control" required placeholder="ชื่อ-นามสกุล" />
+                            <label asp-for="Form.Name" class="form-label fw-semibold"></label>
+                            <input asp-for="Form.Name" name="Form.Name" class="form-control" placeholder="ชื่อ-นามสกุลของคุณ" required />
+                            <span asp-validation-for="Form.Name" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="supportEmail">อีเมล</label>
-                            <input id="supportEmail" type="email" class="form-control" required placeholder="name@example.com" />
+                            <label asp-for="Form.Email" class="form-label fw-semibold"></label>
+                            <input asp-for="Form.Email" name="Form.Email" type="email" class="form-control" placeholder="name@example.com" required />
+                            <span asp-validation-for="Form.Email" class="text-danger small"></span>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold" for="supportTopic">หัวข้อที่ต้องการติดต่อ</label>
-                            <select id="supportTopic" class="form-select" required>
-                                <option value="">เลือกหัวข้อ</option>
-                                <option>ปัญหาการเข้าสู่ระบบ</option>
-                                <option>ปัญหาการชำระเงินหรือคำสั่งซื้อ</option>
-                                <option>ปัญหาการเข้าเรียนหรือวิดีโอ</option>
-                                <option>สอบถามเกี่ยวกับคอร์สเรียน</option>
-                                <option>ข้อเสนอแนะเกี่ยวกับเว็บไซต์</option>
-                                <option>อื่น ๆ</option>
+                            <label asp-for="Form.Topic" class="form-label fw-semibold"></label>
+                            <select asp-for="Form.Topic" name="Form.Topic" class="form-select" required>
+                                <option value="">-- เลือกหัวข้อที่ต้องการติดต่อ --</option>
+                                <option value="ปัญหาการเข้าสู่ระบบ หรือบัญชีผู้ใช้">ปัญหาการเข้าสู่ระบบ หรือบัญชีผู้ใช้</option>
+                                <option value="ปัญหาการชำระเงิน หรือคำสั่งซื้อคอร์ส">ปัญหาการชำระเงิน หรือคำสั่งซื้อคอร์ส</option>
+                                <option value="ปัญหาการเล่นวิดีโอบทเรียน หรือห้องเรียนออนไลน์">ปัญหาการเล่นวิดีโอบทเรียน หรือห้องเรียนออนไลน์</option>
+                                <option value="สอบถามเกี่ยวกับแบบทดสอบ Pre-test / Post-test และ Certificate">สอบถามเกี่ยวกับแบบทดสอบ Pre-test / Post-test และ Certificate</option>
+                                <option value="สอบถามข้อมูลหลักสูตรคอร์สเรียน">สอบถามข้อมูลหลักสูตรคอร์สเรียน</option>
+                                <option value="ข้อเสนอแนะเพื่อพัฒนาเว็บไซต์ DuckUpskill">ข้อเสนอแนะเพื่อพัฒนาเว็บไซต์ DuckUpskill</option>
+                                <option value="ติดต่อสอบถามเรื่องอื่นๆ">ติดต่อสอบถามเรื่องอื่นๆ</option>
                             </select>
+                            <span asp-validation-for="Form.Topic" class="text-danger small"></span>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold" for="supportMessage">รายละเอียด</label>
-                            <textarea id="supportMessage" class="form-control" rows="5" required placeholder="อธิบายปัญหาหรือคำถามของคุณ"></textarea>
+                            <label asp-for="Form.Message" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Form.Message" name="Form.Message" class="form-control" rows="5" placeholder="อธิบายคำถาม ปัญหา หรือข้อสงสัยของคุณอย่างละเอียด..." required></textarea>
+                            <span asp-validation-for="Form.Message" class="text-danger small"></span>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-duck-primary fw-bold px-4">ส่งข้อความถึงทีมงาน →</button>
+                            <button type="submit" class="btn btn-duck-primary fw-bold px-4 py-2">
+                                🚀 ส่งข้อความถึงทีมงานทันที
+                            </button>
                         </div>
                     </div>
                 </form>
-                <div id="supportNotice" class="alert alert-success mt-3 d-none" role="alert">
-                    รับข้อความเรียบร้อยแล้วครับ ทีมงานจะติดต่อกลับโดยเร็วที่สุด
-                </div>
             </div>
         </div>
 
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-4 p-md-5 support-info-card">
                 <h2 class="h4 fw-bold mb-4">ช่องทางอื่น ๆ</h2>
-                <div class="support-info-row"><span>✉️</span><div><strong>อีเมล</strong><br /><a href="mailto:support@duckupskill.com">support@duckupskill.com</a></div></div>
+                <div class="support-info-row"><span>✉️</span><div><strong>อีเมลทางการ</strong><br /><a href="mailto:support@duckupskill.com">support@duckupskill.com</a></div></div>
                 <div class="support-info-row"><span>⏰</span><div><strong>เวลาทำการ</strong><br /><small class="text-muted">จันทร์–ศุกร์ 09:00–18:00 น.</small></div></div>
                 <div class="support-info-row"><span>⚡</span><div><strong>เวลาตอบกลับ</strong><br /><small class="text-muted">ภายใน 1 วันทำการ</small></div></div>
                 <hr class="my-4" />
-                <h3 class="h6 fw-bold">คำถามที่พบบ่อย</h3>
+                <h3 class="h6 fw-bold">ทางลัดช่วยเหลือด่วน</h3>
                 <a asp-controller="Courses" asp-action="Index" class="support-faq-link">ดูคอร์สเรียนทั้งหมด <span>→</span></a>
                 <a asp-controller="Account" asp-action="Login" class="support-faq-link">มีปัญหาเข้าสู่ระบบ? <span>→</span></a>
                 <a asp-controller="Orders" asp-action="History" class="support-faq-link">ตรวจสอบประวัติการสั่งซื้อ <span>→</span></a>
@@ -109,12 +173,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        function submitSupportForm(event) {
-            event.preventDefault();
-            document.getElementById('supportNotice').classList.remove('d-none');
-            event.target.reset();
-            return false;
-        }
-    </script>
+    <partial name="_ValidationScriptsPartial" />
 }

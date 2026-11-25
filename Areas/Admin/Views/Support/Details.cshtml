@@ -1,0 +1,211 @@
+@model DuckUpskill.ViewModels.SupportTicketDetailViewModel
+@{
+    var ticket = Model.Ticket;
+    ViewData["Title"] = "ตอบคำถาม: #" + ticket.Id + " - " + ticket.Topic;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted small">← กลับไปรายการข้อความซัพพอร์ต</a>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+        <div>
+            <span class="badge bg-light text-dark border">Ticket #@ticket.Id</span>
+            <h2 class="fw-bold mb-1 mt-1">💬 @ticket.Topic</h2>
+            <div class="text-muted small">
+                ส่งโดย <strong>@ticket.Name</strong> (@ticket.Email) · เมื่อ @ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Status Badge -->
+            @if (ticket.Status == SupportTicketStatus.Pending)
+            {
+                <span class="badge bg-warning text-dark fs-6 px-3 py-2">⏳ รอแอดมินตอบ</span>
+            }
+            else if (ticket.Status == SupportTicketStatus.Replied)
+            {
+                <span class="badge bg-success fs-6 px-3 py-2">✓ แอดมินตอบแล้ว</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6 px-3 py-2">⚪ ปิดการสนทนา</span>
+            }
+
+            <!-- Quick Status Change dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    เปลี่ยนสถานะ
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                        <form asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@ticket.Id" />
+                            <input type="hidden" name="status" value="@SupportTicketStatus.Pending" />
+                            <button type="submit" class="dropdown-item">⏳ ตั้งเป็น: รอการตอบกลับ</button>
+                        </form>
+                    </li>
+                    <li>
+                        <form asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@ticket.Id" />
+                            <input type="hidden" name="status" value="@SupportTicketStatus.Replied" />
+                            <button type="submit" class="dropdown-item">✓ ตั้งเป็น: ตอบกลับแล้ว</button>
+                        </form>
+                    </li>
+                    <li>
+                        <form asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@ticket.Id" />
+                            <input type="hidden" name="status" value="@SupportTicketStatus.Closed" />
+                            <button type="submit" class="dropdown-item text-danger">⚪ ตั้งเป็น: ปิดการสนทนา</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chat conversation thread -->
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">บทสนทนาโต้ตอบ (@ticket.Messages.Count ข้อความ)</h5>
+
+            <div class="chat-thread-container mb-4" id="chatThread">
+                @foreach (var msg in ticket.Messages)
+                {
+                    if (msg.IsAdmin)
+                    {
+                        <!-- Admin message bubble (Golden/Orange) -->
+                        <div class="chat-bubble-wrapper admin-msg-wrapper mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-1 justify-content-end">
+                                <span class="badge bg-danger">👑 แอดมิน Duck Support</span>
+                                <span class="small text-muted">@msg.SentAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="chat-bubble chat-bubble-admin">
+                                <div style="white-space: pre-line;">@msg.Message</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- User message bubble (Clean white/gray) -->
+                        <div class="chat-bubble-wrapper user-msg-wrapper mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="admin-avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                                    @(msg.SenderName.FirstOrDefault())
+                                </div>
+                                <strong class="small text-dark">@msg.SenderName</strong>
+                                <span class="small text-muted">@msg.SentAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="chat-bubble chat-bubble-user">
+                                <div style="white-space: pre-line;">@msg.Message</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Reply Box for Admin -->
+            <div class="border-top pt-3">
+                <h6 class="fw-bold mb-2">💬 พิมพ์ข้อความตอบกลับผู้เรียน:</h6>
+                <form asp-action="Reply" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ticketId" value="@ticket.Id" />
+                    <div class="mb-3">
+                        <textarea name="replyMessage" rows="4" class="form-control" placeholder="พิมพ์คำตอบหรือคำชี้แจงเพื่อส่งถึงผู้เรียน..." required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">ข้อความนี้จะแสดงในหน้าศูนย์ช่วยเหลือของผู้เรียนทันที</small>
+                        <button type="submit" class="btn btn-duck-primary fw-bold px-4">
+                            🚀 ส่งคำตอบถึงผู้เรียน
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: User / Inquirer Info -->
+    <div class="col-lg-4">
+        <div class="admin-card p-4 mb-4">
+            <h5 class="fw-bold border-bottom pb-2 mb-3">ข้อมูลผู้ติดต่อ</h5>
+            <div class="mb-3 text-center">
+                <div class="admin-avatar mx-auto mb-2" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                    @(ticket.Name.FirstOrDefault())
+                </div>
+                <h5 class="fw-bold mb-0">@ticket.Name</h5>
+                <div class="text-muted small">@ticket.Email</div>
+                @if (ticket.UserId != null)
+                {
+                    <span class="badge bg-success mt-2">สมาชิกในระบบ (Registered Member)</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary mt-2">ผู้ติดต่อทั่วไป (Guest)</span>
+                }
+            </div>
+
+            <ul class="list-unstyled small text-muted border-top pt-3 mb-0">
+                <li class="py-1"><strong>สร้างคำถามเมื่อ:</strong> @ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</li>
+                <li class="py-1"><strong>อัปเดตล่าสุด:</strong> @ticket.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</li>
+                <li class="py-1"><strong>จำนวนข้อความ:</strong> @ticket.Messages.Count ข้อความ</li>
+            </ul>
+
+            @if (ticket.UserId != null)
+            {
+                <div class="d-grid mt-3">
+                    <a asp-controller="Members" asp-action="Details" asp-route-id="@ticket.UserId" class="btn btn-sm btn-outline-primary">
+                        👤 ดูประวัติสมาชิกรายนี้
+                    </a>
+                </div>
+            }
+        </div>
+
+        <div class="admin-card p-3">
+            <h6 class="fw-bold mb-2">การจัดการคำถาม</h6>
+            <form asp-action="Delete" asp-route-id="@ticket.Id" method="post" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบคำถามนี้?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                    🗑️ ลบคำถามนี้ออกจากระบบ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-thread-container {
+    max-height: 520px;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #F8F9FA;
+    border-radius: 12px;
+}
+.chat-bubble-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+.chat-bubble-user {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px 12px 12px 2px;
+    padding: 12px 16px;
+    max-width: 85%;
+    color: #1F2937;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.chat-bubble-admin {
+    background: linear-gradient(135deg, #FFF8E1, #FFF3E0);
+    border: 1px solid #FFE0B2;
+    border-radius: 12px 12px 2px 12px;
+    padding: 12px 16px;
+    max-width: 85%;
+    color: #92400E;
+    align-self: flex-end;
+    box-shadow: 0 1px 3px rgba(255, 106, 0, 0.08);
+}
+.admin-msg-wrapper {
+    align-items: flex-end;
+}
+</style>

@@ -1,0 +1,135 @@
+@model IEnumerable<DuckUpskill.Models.SupportTicket>
+@{
+    ViewData["Title"] = "ศูนย์ช่วยเหลือ & แชตกับผู้ใช้งาน";
+    var selectedStatus = ViewBag.SelectedStatus as DuckUpskill.Models.SupportTicketStatus?;
+    int pendingCount = ViewBag.PendingCount ?? 0;
+    int repliedCount = ViewBag.RepliedCount ?? 0;
+    int closedCount = ViewBag.ClosedCount ?? 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1">💬 ศูนย์ช่วยเหลือ & ข้อความจากผู้ใช้ (Support Center)</h2>
+        <p class="text-muted mb-0">อ่านคำถาม ตอบกลับ และพูดคุยโต้ตอบกับผู้เรียนได้โดยตรง</p>
+    </div>
+</div>
+
+<!-- Quick Stat / Filter Pills -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <a asp-action="Index" class="btn btn-sm @(!selectedStatus.HasValue ? "btn-dark fw-bold" : "btn-light border")">
+        ทั้งหมด (@(pendingCount + repliedCount + closedCount))
+    </a>
+    <a asp-action="Index" asp-route-status="Pending" class="btn btn-sm @(selectedStatus == SupportTicketStatus.Pending ? "btn-warning text-dark fw-bold" : "btn-light border")">
+        ⏳ รอแอดมินตอบ (@pendingCount)
+    </a>
+    <a asp-action="Index" asp-route-status="Replied" class="btn btn-sm @(selectedStatus == SupportTicketStatus.Replied ? "btn-success fw-bold" : "btn-light border")">
+        ✓ ตอบกลับแล้ว (@repliedCount)
+    </a>
+    <a asp-action="Index" asp-route-status="Closed" class="btn btn-sm @(selectedStatus == SupportTicketStatus.Closed ? "btn-secondary fw-bold" : "btn-light border")">
+        ⚪ ปิดการสนทนา (@closedCount)
+    </a>
+</div>
+
+<!-- Search Bar -->
+<div class="admin-card mb-4 p-3">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-6">
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="ค้นหาชื่อผู้ติดต่อ, อีเมล หรือหัวข้อคำถาม..." />
+        </div>
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">ทุกสถานะ</option>
+                <!option value="Pending" @(selectedStatus == SupportTicketStatus.Pending ? "selected" : "")>รอการตอบกลับ (Pending)</!option>
+                <!option value="Replied" @(selectedStatus == SupportTicketStatus.Replied ? "selected" : "")>ตอบกลับแล้ว (Replied)</!option>
+                <!option value="Closed" @(selectedStatus == SupportTicketStatus.Closed ? "selected" : "")>ปิดการสนทนา (Closed)</!option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-dark w-100">ค้นหา</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">ล้าง</a>
+        </div>
+    </form>
+</div>
+
+<!-- Tickets Table -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">รหัส</th>
+                    <th>ผู้ติดต่อ</th>
+                    <th>หัวข้อคำถาม</th>
+                    <th>ข้อความล่าสุด</th>
+                    <th>สถานะ</th>
+                    <th>อัปเดตล่าสุด</th>
+                    <th class="text-end" style="width: 170px;">การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            ไม่พบรายการคำถามหรือข้อความที่ตรงกับเงื่อนไข
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    var lastMsg = item.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+                    <tr>
+                        <td class="fw-bold text-muted">#@item.Id</td>
+                        <td>
+                            <div class="fw-bold text-dark">@item.Name</div>
+                            <small class="text-muted">@item.Email</small>
+                            @if (item.UserId != null)
+                            {
+                                <span class="badge bg-light text-dark border ms-1" style="font-size: 0.65rem;">สมาชิก</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="fw-semibold text-dark text-decoration-none d-block">
+                                @item.Topic
+                            </a>
+                            <span class="small text-muted">💬 ทั้งหมด @item.Messages.Count ข้อความ</span>
+                        </td>
+                        <td style="max-width: 250px;">
+                            <span class="text-truncate d-inline-block text-muted small" style="max-width: 250px;">
+                                @(lastMsg?.Message ?? "-")
+                            </span>
+                        </td>
+                        <td>
+                            @if (item.Status == SupportTicketStatus.Pending)
+                            {
+                                <span class="badge bg-warning text-dark">⏳ รอแอดมินตอบ</span>
+                            }
+                            else if (item.Status == SupportTicketStatus.Replied)
+                            {
+                                <span class="badge bg-success">✓ ตอบกลับแล้ว</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">ปิดการสนทนา</span>
+                            }
+                        </td>
+                        <td class="small text-muted">
+                            @item.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-duck-primary fw-semibold" title="เปิดแชต">
+                                    💬 แชต / ตอบ
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('ยืนยันลบคำถามนี้หรือไม่?');" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger" title="ลบ">ลบ</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

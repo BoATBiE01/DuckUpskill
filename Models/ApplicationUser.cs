@@ -21,4 +21,5 @@ public class ApplicationUser : IdentityUser
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<AssessmentAttempt> AssessmentAttempts { get; set; } = new List<AssessmentAttempt>();
     public ICollection<CourseCertificate> Certificates { get; set; } = new List<CourseCertificate>();
+    public ICollection<SupportTicket> SupportTickets { get; set; } = new List<SupportTicket>();
 }

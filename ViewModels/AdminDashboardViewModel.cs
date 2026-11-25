@@ -13,4 +13,6 @@ public class AdminDashboardViewModel
     public List<Order> RecentOrders { get; set; } = new();
     public List<Enrollment> RecentEnrollments { get; set; } = new();
     public List<Course> PopularCourses { get; set; } = new();
+    public int PendingSupportTickets { get; set; }
+    public List<SupportTicket> RecentSupportTickets { get; set; } = new();
 }
